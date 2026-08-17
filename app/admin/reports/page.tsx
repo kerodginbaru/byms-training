@@ -1,21 +1,21 @@
 import { requirePermission } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
-import { formatCurrencyETB } from "@/lib/utils/labels";
+import { PACKAGE_LABELS } from "@/components/registration/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminReportsPage() {
   await requirePermission("reports:read");
 
-  const [byYear, byType, bySchedule, paymentTotals] = await Promise.all([
+  const [byYear, byType, bySchedule, byPackage] = await Promise.all([
     prisma.registration.groupBy({ by: ["studentYear"], _count: { _all: true } }),
     prisma.registration.groupBy({ by: ["applicantType"], _count: { _all: true } }),
     prisma.registration.groupBy({ by: ["scheduleId"], _count: { _all: true } }),
-    prisma.payment.groupBy({ by: ["status"], _count: { _all: true }, _sum: { totalAmount: true } })
+    prisma.registration.groupBy({ by: ["packageType"], _count: { _all: true } })
   ]);
 
   const schedules = await prisma.schedule.findMany();
-  const scheduleName = (id: string) => schedules.find((s) => s.id === id)?.name ?? id;
+  const scheduleName = (id: string | null) => schedules.find((s) => s.id === id)?.name ?? "—";
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
@@ -30,16 +30,16 @@ export default async function AdminReportsPage() {
         rows={byYear.filter((r) => r.studentYear).map((r) => [r.studentYear as string, String(r._count._all)])}
       />
       <ReportTable
-        title="Registrations by Schedule"
-        rows={bySchedule.map((r) => [scheduleName(r.scheduleId), String(r._count._all)])}
+        title="Registrations by Package"
+        rows={byPackage.map((r) => [PACKAGE_LABELS[r.packageType], String(r._count._all)])}
       />
       <ReportTable
-        title="Payment Totals by Status"
-        rows={paymentTotals.map((r) => [r.status, `${r._count._all} · ${formatCurrencyETB(Number(r._sum.totalAmount ?? 0))}`])}
+        title="Registrations by Schedule (Regular package only)"
+        rows={bySchedule.filter((r) => r.scheduleId).map((r) => [scheduleName(r.scheduleId), String(r._count._all)])}
       />
 
-      <a
-        href="/api/admin/registrations/export"
+      
+        <a href="/api/admin/registrations/export"
         className="inline-block rounded-full bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-600"
       >
         Export All Registrations (CSV)

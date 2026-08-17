@@ -20,8 +20,9 @@ export default async function AdminSettingsPage() {
       phone: String(formData.get("phone") ?? ""),
       email: String(formData.get("email") ?? ""),
       address: String(formData.get("address") ?? ""),
-      registrationFee: Number(formData.get("registrationFee") ?? 0),
-      firstMonthFee: Number(formData.get("firstMonthFee") ?? 0),
+      location: String(formData.get("location") ?? ""),
+      contactPersonName: String(formData.get("contactPersonName") ?? ""),
+      contactPersonPhone: String(formData.get("contactPersonPhone") ?? ""),
       heroTitle: String(formData.get("heroTitle") ?? ""),
       heroDescription: String(formData.get("heroDescription") ?? ""),
       morningStartTime: String(formData.get("morningStartTime") ?? ""),
@@ -72,10 +73,11 @@ export default async function AdminSettingsPage() {
           <Field label="Email" name="email" type="email" defaultValue={settings?.email} />
         </div>
         <Field label="Address" name="address" defaultValue={settings?.address} />
+        <Field label="Location (e.g. near a landmark)" name="location" defaultValue={settings?.location} />
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Registration Fee (ETB)" name="registrationFee" type="number" defaultValue={String(settings?.registrationFee ?? 0)} />
-          <Field label="First Month Fee (ETB)" name="firstMonthFee" type="number" defaultValue={String(settings?.firstMonthFee ?? 0)} />
+          <Field label="Contact Person Name" name="contactPersonName" defaultValue={settings?.contactPersonName} />
+          <Field label="Contact Person Phone" name="contactPersonPhone" defaultValue={settings?.contactPersonPhone} />
         </div>
 
         <Field label="Hero Title" name="heroTitle" defaultValue={settings?.heroTitle} />

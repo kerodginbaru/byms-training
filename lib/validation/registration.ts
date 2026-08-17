@@ -1,10 +1,5 @@
 import { z } from "zod";
 
-// ---------------------------------------------------------------------------
-// Ethiopian phone number handling
-// Accepts: 09XXXXXXXX, 07XXXXXXXX, +2519XXXXXXXX, +2517XXXXXXXX, 2519XXXXXXXX
-// Normalizes to: 2519XXXXXXXX / 2517XXXXXXXX (no plus, 12 digits)
-// ---------------------------------------------------------------------------
 export function normalizeEthiopianPhone(raw: string): string | null {
   const digits = raw.replace(/[\s\-()]/g, "");
   let match: RegExpMatchArray | null;
@@ -45,7 +40,6 @@ export const STUDENT_YEAR_VALUES = [
 
 const YEARS_REQUIRING_DEPARTMENT = new Set(["YEAR_2", "YEAR_3", "YEAR_4", "YEAR_5", "YEAR_6"]);
 
-// Base object shape (pre-refinement) so we can reuse .shape in step-level partial validation.
 const baseRegistrationShape = {
   fullName: z
     .string()
@@ -58,8 +52,15 @@ const baseRegistrationShape = {
   }),
   studentYear: z.enum(STUDENT_YEAR_VALUES).optional().nullable(),
   department: z.string().trim().max(150).optional().nullable(),
-  scheduleId: z.string().min(1, "Please select your training schedule."),
-  receiptFileId: z.string().min(1, "Please upload your payment receipt.")
+  packageType: z.enum(["REGULAR", "SPECIAL", "HOME_TO_HOME", "KRAR"], {
+    errorMap: () => ({ message: "Please select a package." })
+  }),
+  scheduleId: z.string().optional().nullable(),
+  preferredTime: z.string().trim().max(200).optional().nullable(),
+  receiptFileId: z.string().min(1, "Please upload your document."),
+  agreedToRegulations: z.literal(true, {
+    errorMap: () => ({ message: "Please confirm you accept the training center's regulations." })
+  })
 };
 
 export const registrationSchema = z
@@ -86,7 +87,6 @@ export const registrationSchema = z
     }
 
     if (data.applicantType === "EMPLOYEE") {
-      // Employees must not carry student-only fields.
       if (data.studentYear) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -102,20 +102,41 @@ export const registrationSchema = z
         });
       }
     }
+
+    if (data.packageType === "REGULAR") {
+      if (!data.scheduleId) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Please select your training schedule.",
+          path: ["scheduleId"]
+        });
+      }
+    } else {
+      if (!data.preferredTime || data.preferredTime.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Please tell us your preferred time.",
+          path: ["preferredTime"]
+        });
+      }
+    }
   });
 
 export type RegistrationInput = z.infer<typeof registrationSchema>;
 
-// Server-side normalization step: strips student fields for employees, and drops
-// department when year doesn't require it, regardless of what the client sent.
 export function sanitizeRegistrationPayload(data: RegistrationInput) {
-  if (data.applicantType === "EMPLOYEE") {
-    return { ...data, studentYear: null, department: null };
+  let result = data;
+  if (result.applicantType === "EMPLOYEE") {
+    result = { ...result, studentYear: null, department: null };
+  } else if (result.studentYear && !YEARS_REQUIRING_DEPARTMENT.has(result.studentYear)) {
+    result = { ...result, department: null };
   }
-  if (data.studentYear && !YEARS_REQUIRING_DEPARTMENT.has(data.studentYear)) {
-    return { ...data, department: null };
+  if (result.packageType === "REGULAR") {
+    result = { ...result, preferredTime: null };
+  } else {
+    result = { ...result, scheduleId: null };
   }
-  return data;
+  return result;
 }
 
 export const fileUploadSchema = z.object({

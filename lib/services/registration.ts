@@ -1,20 +1,7 @@
 import "server-only";
-import { Prisma, RegistrationStatus } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { sanitizeRegistrationPayload, RegistrationInput } from "@/lib/validation/registration";
-
-// ---------------------------------------------------------------------------
-// Capacity rule (documented, per spec section 7):
-// A seat is considered "reserved" by any registration whose status is
-// PENDING or APPROVED. REJECTED and CANCELLED registrations free the seat.
-// This is the single source of truth for capacity counting — every place
-// that needs a seat count (public schedule list, admin dashboard, the
-// registration transaction itself) must use RESERVING_STATUSES.
-// ---------------------------------------------------------------------------
-export const RESERVING_STATUSES: RegistrationStatus[] = [
-  RegistrationStatus.PENDING,
-  RegistrationStatus.APPROVED
-];
 
 export class ScheduleFullError extends Error {
   constructor() {
@@ -40,13 +27,6 @@ export class DuplicateRegistrationError extends Error {
   }
 }
 
-/**
- * Generates the next sequential registration number for the given year using an
- * atomic UPDATE ... RETURNING against a dedicated counter row. This is safe under
- * concurrency because the increment happens inside the same transaction that also
- * checks/reserves schedule capacity, and Postgres row locks serialize concurrent
- * updates to the same counter row.
- */
 async function nextRegistrationNumber(tx: Prisma.TransactionClient, year: number) {
   const counter = await tx.registrationCounter.upsert({
     where: { year },
@@ -62,30 +42,55 @@ export type CreateRegistrationResult = {
   registrationNumber: string;
 };
 
-/**
- * Creates a registration inside a single serializable-ish transaction that:
- *   1. Locks/reads the schedule row
- *   2. Confirms the schedule is active
- *   3. Counts currently-reserving registrations for that schedule
- *   4. Rejects if capacity is already reached (capacity is enforced here,
- *      NOT just in the UI — this is the authoritative check)
- *   5. Optionally rejects duplicate phone+schedule combinations
- *   6. Generates a unique sequential registration number
- *   7. Creates the registration + payment + links the uploaded receipt file
- *
- * Postgres row-level locking (`FOR UPDATE` via queryRaw on the schedule row)
- * ensures that two near-simultaneous submissions for the last remaining seat
- * cannot both pass the capacity check.
- */
 export async function createRegistration(input: RegistrationInput) {
   const data = sanitizeRegistrationPayload(input);
   const year = new Date().getFullYear();
 
+  if (data.packageType !== "REGULAR") {
+    return prisma.$transaction(async (tx) => {
+      const settings = await tx.settings.findUnique({ where: { id: 1 } });
+      if (settings && !settings.registrationOpen) {
+        throw new ScheduleUnavailableError();
+      }
+
+      const registrationNumber = await nextRegistrationNumber(tx, year);
+
+      const registration = await tx.registration.create({
+        data: {
+          registrationNumber,
+          fullName: data.fullName,
+          phone: data.phone,
+          applicantType: data.applicantType,
+          studentYear: data.studentYear ?? null,
+          department: data.department ?? null,
+          packageType: data.packageType,
+          preferredTime: data.preferredTime ?? null,
+          scheduleId: null,
+          agreedToRegulations: data.agreedToRegulations,
+          uploadedFiles: {
+            connect: { id: data.receiptFileId }
+          }
+        },
+        select: { id: true, registrationNumber: true }
+      });
+
+      await tx.auditLog.create({
+        data: {
+          action: "REGISTRATION_CREATED",
+          entityType: "Registration",
+          entityId: registration.id,
+          registrationId: registration.id,
+          metadata: { packageType: data.packageType }
+        }
+      });
+
+      return registration as CreateRegistrationResult;
+    });
+  }
+
   return prisma.$transaction(
     async (tx) => {
-      // Lock the schedule row for the duration of this transaction so that
-      // concurrent submissions targeting the same schedule are serialized.
-      const lockedSchedules = await tx.$queryRaw<
+      const lockedSchedules = await tx.$queryRaw
         { id: string; capacity: number; isActive: boolean }[]
       >(Prisma.sql`
         SELECT "id", "capacity", "isActive"
@@ -105,10 +110,7 @@ export async function createRegistration(input: RegistrationInput) {
       }
 
       const reservedCount = await tx.registration.count({
-        where: {
-          scheduleId: schedule.id,
-          registrationStatus: { in: RESERVING_STATUSES }
-        }
+        where: { scheduleId: schedule.id }
       });
 
       if (reservedCount >= schedule.capacity) {
@@ -117,11 +119,7 @@ export async function createRegistration(input: RegistrationInput) {
 
       if (settings?.duplicatePhoneScheduleBlock !== false) {
         const duplicate = await tx.registration.findFirst({
-          where: {
-            phone: data.phone,
-            scheduleId: schedule.id,
-            registrationStatus: { in: RESERVING_STATUSES }
-          }
+          where: { phone: data.phone, scheduleId: schedule.id }
         });
         if (duplicate) {
           throw new DuplicateRegistrationError();
@@ -129,10 +127,6 @@ export async function createRegistration(input: RegistrationInput) {
       }
 
       const registrationNumber = await nextRegistrationNumber(tx, year);
-
-      const registrationFee = settings?.registrationFee ?? 0;
-      const firstMonthFee = settings?.firstMonthFee ?? 0;
-      const totalAmount = Number(registrationFee) + Number(firstMonthFee);
 
       const registration = await tx.registration.create({
         data: {
@@ -142,18 +136,11 @@ export async function createRegistration(input: RegistrationInput) {
           applicantType: data.applicantType,
           studentYear: data.studentYear ?? null,
           department: data.department ?? null,
+          packageType: "REGULAR",
           scheduleId: schedule.id,
-          registrationStatus: RegistrationStatus.PENDING,
+          agreedToRegulations: data.agreedToRegulations,
           uploadedFiles: {
             connect: { id: data.receiptFileId }
-          },
-          payment: {
-            create: {
-              registrationFee,
-              firstMonthFee,
-              totalAmount,
-              receiptFileId: data.receiptFileId
-            }
           }
         },
         select: { id: true, registrationNumber: true }
@@ -175,7 +162,6 @@ export async function createRegistration(input: RegistrationInput) {
   );
 }
 
-/** Seat availability for the public schedule list. */
 export async function getScheduleAvailability() {
   const schedules = await prisma.schedule.findMany({
     where: { isActive: true },
@@ -184,7 +170,6 @@ export async function getScheduleAvailability() {
 
   const counts = await prisma.registration.groupBy({
     by: ["scheduleId"],
-    where: { registrationStatus: { in: RESERVING_STATUSES } },
     _count: { _all: true }
   });
 
@@ -198,5 +183,26 @@ export async function getScheduleAvailability() {
       remaining: Math.max(0, s.capacity - registered),
       isFull: registered >= s.capacity
     };
+  });
+}
+
+export async function deleteRegistration(registrationId: string, adminId: string) {
+  return prisma.$transaction(async (tx) => {
+    const existing = await tx.registration.findUnique({ where: { id: registrationId } });
+    if (!existing) return null;
+
+    await tx.registration.delete({ where: { id: registrationId } });
+
+    await tx.auditLog.create({
+      data: {
+        userId: adminId,
+        action: "REGISTRATION_DELETED",
+        entityType: "Registration",
+        entityId: registrationId,
+        metadata: { registrationNumber: existing.registrationNumber }
+      }
+    });
+
+    return existing;
   });
 }

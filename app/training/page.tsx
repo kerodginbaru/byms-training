@@ -1,25 +1,48 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getScheduleAvailability } from "@/lib/services/registration";
-import { prisma } from "@/lib/db";
 import { formatDays, SESSION_LABELS, formatCurrencyETB } from "@/lib/utils/labels";
+import { PACKAGE_DESCRIPTIONS, PACKAGE_LABELS, PACKAGE_PRICES, TRAININGS_OFFERED } from "@/components/registration/types";
 
 export const metadata: Metadata = { title: "የስልጠና መርሃ ግብር" };
 export const revalidate = 30;
 
 export default async function TrainingPage() {
-  const [schedules, settings] = await Promise.all([
-    getScheduleAvailability(),
-    prisma.settings.findUnique({ where: { id: 1 } })
-  ]);
+  const schedules = await getScheduleAvailability();
 
   return (
     <div className="container-page py-16">
       <h1 className="amharic text-3xl font-bold text-ink-900">የስልጠና መርሃ ግብር</h1>
-      <p className="amharic mt-2 text-ink-900/70">
-        ምዝገባ ክፍያ: {settings ? formatCurrencyETB(Number(settings.registrationFee)) : "—"} · የመጀመሪያ ወር ክፍያ:{" "}
-        {settings ? formatCurrencyETB(Number(settings.firstMonthFee)) : "—"}
-      </p>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {TRAININGS_OFFERED.map((t) => (
+          <span key={t} className="amharic rounded-full bg-brand-100 px-4 py-1.5 text-sm font-medium text-brand-700">
+            {t}
+          </span>
+        ))}
+      </div>
+
+      <h2 className="amharic mt-10 text-xl font-bold text-ink-900">ጥቅሎች</h2>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
+          <p className="amharic font-semibold text-brand-700">{PACKAGE_LABELS.REGULAR}</p>
+          <p className="amharic mt-1 text-sm text-ink-900/60">{PACKAGE_DESCRIPTIONS.REGULAR}</p>
+        </div>
+        {(Object.keys(PACKAGE_PRICES) as (keyof typeof PACKAGE_PRICES)[]).map((key) => (
+          <div key={key} className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
+            <p className="amharic font-semibold text-brand-700">{PACKAGE_LABELS[key]}</p>
+            <p className="amharic mt-1 text-sm text-ink-900/60">{PACKAGE_DESCRIPTIONS[key]}</p>
+            <p className="amharic mt-3 text-sm font-medium text-ink-900">
+              ተማሪ፡ {formatCurrencyETB(PACKAGE_PRICES[key].student)}
+            </p>
+            <p className="amharic text-sm font-medium text-ink-900">
+              ሠራተኛ፡ {formatCurrencyETB(PACKAGE_PRICES[key].employee)}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="amharic mt-10 text-xl font-bold text-ink-900">የመደበኛ ስልጠና መርሃ ግብር</h2>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {schedules.map((s) => (

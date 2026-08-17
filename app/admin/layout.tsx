@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { getSession } from "@/lib/auth/session";
 import { AdminLogoutButton } from "@/components/admin/logout-button";
+import { AdminMobileNav } from "@/components/admin/mobile-nav";
 
 const NAV = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/registrations", label: "Registrations" },
   { href: "/admin/schedules", label: "Schedules" },
-  { href: "/admin/payments", label: "Payments" },
   { href: "/admin/reports", label: "Reports" },
   { href: "/admin/settings", label: "Settings" },
   { href: "/admin/users", label: "Admin Users" }
@@ -33,6 +33,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       </aside>
 
       <div className="flex-1">
+        <AdminMobileNav nav={NAV} />
         <header className="flex h-16 items-center justify-between border-b border-brand-100 bg-white px-6">
           <p className="text-sm text-ink-900/60">
             Signed in as <span className="font-medium text-ink-900">{session?.email}</span> ·{" "}
@@ -43,6 +44,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           <AdminLogoutButton />
         </header>
         <main className="p-6">{children}</main>
+        <footer className="border-t border-brand-100 px-6 py-4 text-center text-xs text-ink-900/40">
+          Developed by [YOUR NAME]
+        </footer>
       </div>
     </div>
   );

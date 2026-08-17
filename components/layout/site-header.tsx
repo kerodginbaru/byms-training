@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const NAV_LINKS = [
   { href: "/", label: "መነሻ" },
@@ -11,10 +12,15 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-brand-100 bg-white/90 backdrop-blur">
       <div className="container-page flex h-16 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-brand-700">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-500 text-sm font-bold text-white">
-            ቤ
-          </span>
+        <Link href="/" className="flex items-center gap-2.5 font-semibold text-brand-700">
+          <Image
+            src="/images/logo.png"
+            alt="ቤተ-ያሬድ መንፈሳዊ መሳርያዎች ማሰልጠኛ"
+            width={40}
+            height={40}
+            className="h-10 w-10 rounded-full"
+            priority
+          />
           <span className="amharic text-lg leading-tight">ቤተ-ያሬድ ማሰልጠኛ</span>
         </Link>
 

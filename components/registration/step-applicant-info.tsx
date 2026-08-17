@@ -3,14 +3,8 @@ import { StudentYear, WizardState } from "./types";
 
 const YEAR_OPTIONS: StudentYear[] = ["REMEDIAL", "YEAR_1", "YEAR_2", "YEAR_3", "YEAR_4", "YEAR_5", "YEAR_6"];
 
-// Department options — adjust to match the institution's actual offerings.
-const DEPARTMENT_OPTIONS = [
-  "የመዝሙር ትምህርት",
-  "የመሳርያ ትምህርት",
-  "የቅኔ ትምህርት",
-  "የዜማ ትምህርት",
-  "ሌላ"
-];
+// Department = which instrument the student is training on.
+const DEPARTMENT_OPTIONS = ["በገና", "ክራር", "መሰንቆ", "ከበሮ"];
 
 export function StepApplicantInfo({
   state,
@@ -82,7 +76,7 @@ export function StepApplicantInfo({
           {departmentRequired && (
             <div>
               <label htmlFor="department" className="amharic block text-sm font-medium text-ink-900">
-                ትምህርት ክፍል
+                የሚማሩት መሳርያ
               </label>
               <select
                 id="department"

@@ -5,7 +5,7 @@ export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const isAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin/login";
-  const isAdminApiRoute = pathname.startsWith("/api/admin");
+  const isAdminApiRoute = pathname.startsWith("/api/admin") && pathname !== "/api/admin/login";
 
   if (!isAdminRoute && !isAdminApiRoute) {
     return NextResponse.next();

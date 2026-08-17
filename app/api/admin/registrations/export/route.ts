@@ -16,8 +16,8 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const where: Prisma.RegistrationWhereInput = {};
   const q = searchParams.get("q");
-  const status = searchParams.get("status");
   const type = searchParams.get("type");
+  const packageType = searchParams.get("packageType");
   const scheduleId = searchParams.get("scheduleId");
 
   if (q) {
@@ -27,13 +27,13 @@ export async function GET(req: NextRequest) {
       { registrationNumber: { contains: q, mode: "insensitive" } }
     ];
   }
-  if (status) where.registrationStatus = status as any;
   if (type) where.applicantType = type as any;
+  if (packageType) where.packageType = packageType as any;
   if (scheduleId) where.scheduleId = scheduleId;
 
   const registrations = await prisma.registration.findMany({
     where,
-    include: { schedule: true, payment: true },
+    include: { schedule: true },
     orderBy: { createdAt: "desc" }
   });
 
@@ -43,11 +43,10 @@ export async function GET(req: NextRequest) {
     "Phone",
     "Type",
     "Year",
-    "Department",
+    "Instrument",
+    "Package",
     "Schedule",
-    "Payment Status",
-    "Registration Status",
-    "Total Amount",
+    "Preferred Time",
     "Created At"
   ];
 
@@ -59,10 +58,9 @@ export async function GET(req: NextRequest) {
       r.applicantType,
       r.studentYear ?? "",
       r.department ?? "",
-      r.schedule.name,
-      r.payment?.status ?? "",
-      r.registrationStatus,
-      r.payment ? String(r.payment.totalAmount) : "",
+      r.packageType,
+      r.schedule?.name ?? "",
+      r.preferredTime ?? "",
       r.createdAt.toISOString()
     ]
       .map((v) => csvEscape(String(v)))

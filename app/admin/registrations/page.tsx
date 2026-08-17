@@ -2,11 +2,8 @@ import Link from "next/link";
 import { requirePermission } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-import {
-  REGISTRATION_STATUS_LABELS,
-  PAYMENT_STATUS_LABELS,
-  STUDENT_YEAR_LABELS
-} from "@/lib/utils/labels";
+import { STUDENT_YEAR_LABELS } from "@/lib/utils/labels";
+import { PACKAGE_LABELS } from "@/components/registration/types";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +14,9 @@ export default async function AdminRegistrationsPage({
 }: {
   searchParams: {
     q?: string;
-    status?: string;
     type?: string;
+    packageType?: string;
     scheduleId?: string;
-    paymentStatus?: string;
     page?: string;
   };
 }) {
@@ -37,17 +33,14 @@ export default async function AdminRegistrationsPage({
       { registrationNumber: { contains: searchParams.q, mode: "insensitive" } }
     ];
   }
-  if (searchParams.status) where.registrationStatus = searchParams.status as any;
   if (searchParams.type) where.applicantType = searchParams.type as any;
+  if (searchParams.packageType) where.packageType = searchParams.packageType as any;
   if (searchParams.scheduleId) where.scheduleId = searchParams.scheduleId;
-  if (searchParams.paymentStatus) {
-    where.payment = { status: searchParams.paymentStatus as any };
-  }
 
   const [registrations, total, schedules] = await Promise.all([
     prisma.registration.findMany({
       where,
-      include: { schedule: true, payment: true },
+      include: { schedule: true },
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE
@@ -71,35 +64,29 @@ export default async function AdminRegistrationsPage({
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-ink-900">Registrations</h1>
-        <a
-          href={`/api/admin/registrations/export${buildQuery({ page: undefined })}`}
+        
+         <a href={`/api/admin/registrations/export${buildQuery({ page: undefined })}`}
           className="rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
         >
           Export CSV
         </a>
       </div>
 
-      <form className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6" method="get">
+      <form className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" method="get">
         <input
           name="q"
           defaultValue={searchParams.q}
           placeholder="Search name / phone / number"
           className="col-span-2 rounded-lg border border-brand-200 px-3 py-2 text-sm lg:col-span-2"
         />
-        <select name="status" defaultValue={searchParams.status ?? ""} className="rounded-lg border border-brand-200 px-3 py-2 text-sm">
-          <option value="">All statuses</option>
-          {Object.entries(REGISTRATION_STATUS_LABELS).map(([k, v]) => (
-            <option key={k} value={k}>{v}</option>
-          ))}
-        </select>
         <select name="type" defaultValue={searchParams.type ?? ""} className="rounded-lg border border-brand-200 px-3 py-2 text-sm">
           <option value="">All types</option>
           <option value="STUDENT">Student</option>
           <option value="EMPLOYEE">Employee</option>
         </select>
-        <select name="paymentStatus" defaultValue={searchParams.paymentStatus ?? ""} className="rounded-lg border border-brand-200 px-3 py-2 text-sm">
-          <option value="">All payment statuses</option>
-          {Object.entries(PAYMENT_STATUS_LABELS).map(([k, v]) => (
+        <select name="packageType" defaultValue={searchParams.packageType ?? ""} className="rounded-lg border border-brand-200 px-3 py-2 text-sm">
+          <option value="">All packages</option>
+          {Object.entries(PACKAGE_LABELS).map(([k, v]) => (
             <option key={k} value={k}>{v}</option>
           ))}
         </select>
@@ -114,7 +101,6 @@ export default async function AdminRegistrationsPage({
         </button>
       </form>
 
-      {/* Desktop table */}
       <div className="mt-6 hidden overflow-x-auto rounded-xl border border-brand-100 bg-white md:block">
         <table className="w-full text-left text-sm">
           <thead className="bg-brand-50 text-xs uppercase text-ink-900/50">
@@ -123,9 +109,8 @@ export default async function AdminRegistrationsPage({
               <th className="px-4 py-3">Name</th>
               <th className="px-4 py-3">Phone</th>
               <th className="px-4 py-3">Type</th>
-              <th className="px-4 py-3">Schedule</th>
-              <th className="px-4 py-3">Payment</th>
-              <th className="px-4 py-3">Status</th>
+              <th className="px-4 py-3">Package</th>
+              <th className="px-4 py-3">Schedule / Time</th>
               <th className="px-4 py-3">Created</th>
               <th className="px-4 py-3" />
             </tr>
@@ -139,13 +124,12 @@ export default async function AdminRegistrationsPage({
                 <td className="px-4 py-3">
                   {r.applicantType === "STUDENT" ? `Student${r.studentYear ? " · " + STUDENT_YEAR_LABELS[r.studentYear] : ""}` : "Employee"}
                 </td>
-                <td className="px-4 py-3">{r.schedule.name}</td>
                 <td className="px-4 py-3">
-                  <StatusBadge label={r.payment ? PAYMENT_STATUS_LABELS[r.payment.status] : "—"} />
+                  <span className="inline-block rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium text-brand-700">
+                    {PACKAGE_LABELS[r.packageType]}
+                  </span>
                 </td>
-                <td className="px-4 py-3">
-                  <StatusBadge label={REGISTRATION_STATUS_LABELS[r.registrationStatus]} />
-                </td>
+                <td className="px-4 py-3">{r.schedule?.name ?? r.preferredTime ?? "—"}</td>
                 <td className="whitespace-nowrap px-4 py-3 text-ink-900/60">
                   {new Intl.DateTimeFormat("en-GB", { dateStyle: "short" }).format(r.createdAt)}
                 </td>
@@ -160,7 +144,6 @@ export default async function AdminRegistrationsPage({
         </table>
       </div>
 
-      {/* Mobile cards */}
       <div className="mt-6 space-y-3 md:hidden">
         {registrations.map((r) => (
           <Link
@@ -170,10 +153,12 @@ export default async function AdminRegistrationsPage({
           >
             <div className="flex items-center justify-between">
               <span className="font-mono text-xs text-ink-900/50">{r.registrationNumber}</span>
-              <StatusBadge label={REGISTRATION_STATUS_LABELS[r.registrationStatus]} />
+              <span className="rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium text-brand-700">
+                {PACKAGE_LABELS[r.packageType]}
+              </span>
             </div>
             <p className="mt-1 font-medium text-ink-900">{r.fullName}</p>
-            <p className="text-sm text-ink-900/60">{r.phone} · {r.schedule.name}</p>
+            <p className="text-sm text-ink-900/60">{r.phone} · {r.schedule?.name ?? r.preferredTime ?? "—"}</p>
           </Link>
         ))}
       </div>
@@ -195,12 +180,4 @@ export default async function AdminRegistrationsPage({
       </div>
     </div>
   );
-}
-
-function StatusBadge({ label }: { label: string }) {
-  return (
-    <span className="inline-block rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium text-brand-700">
-      {label}
-    </span>
-  );
-}
+}   

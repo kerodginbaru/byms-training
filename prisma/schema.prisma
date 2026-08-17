@@ -8,9 +8,120 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-// ---------------------------------------------------------------------------
-// ENUMS
-// ---------------------------------------------------------------------------
+model AdminUser {
+  id           String     @id @default(cuid())
+  fullName     String
+  email        String     @unique
+  passwordHash String
+  role         AdminRole  @default(REGISTRATION_ADMIN)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  auditLogs    AuditLog[]
+
+  @@index([email])
+}
+
+model Schedule {
+  id            String         @id @default(cuid())
+  name          String
+  days          String[]
+  session       SessionName
+  startTime     String
+  endTime       String
+  capacity      Int            @default(30)
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  registrations Registration[]
+
+  @@index([isActive])
+}
+
+model Registration {
+  id                  String         @id @default(cuid())
+  registrationNumber  String         @unique
+  fullName            String
+  phone               String
+  applicantType       ApplicantType
+  studentYear         StudentYear?
+  department          String?
+  scheduleId          String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  agreedToRegulations Boolean        @default(false)
+  packageType         PackageType    @default(REGULAR)
+  preferredTime       String?
+  auditLogs           AuditLog[]
+  schedule            Schedule?      @relation(fields: [scheduleId], references: [id])
+  uploadedFiles       UploadedFile[]
+
+  @@index([phone])
+  @@index([scheduleId])
+  @@index([createdAt])
+  @@index([registrationNumber])
+}
+
+model RegistrationCounter {
+  year    Int @id
+  current Int @default(0)
+}
+
+model UploadedFile {
+  id               String        @id @default(cuid())
+  kind             FileKind      @default(DOCUMENT)
+  registrationId   String?
+  storageKey       String
+  originalFilename String
+  mimeType         String
+  size             Int
+  createdAt        DateTime      @default(now())
+  registration     Registration? @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+
+  @@index([registrationId])
+  @@index([kind])
+}
+
+model Settings {
+  id                          Int      @id @default(1)
+  institutionNameAm           String   @default("ቤተ-ያሬድ መንፈሳዊ መሳርያዎች ማሰልጠኛ")
+  institutionNameEn           String   @default("Bete-Yared Spiritual Instruments Training Center")
+  phone                       String   @default("+251900000000")
+  email                       String   @default("info@example.org")
+  address                     String   @default("Addis Ababa, Ethiopia")
+  heroTitle                   String   @default("ቤተ-ያሬድ መንፈሳዊ መሳርያዎች ማሰልጠኛ")
+  heroDescription             String   @default("ኦንላይን በመመዝገብ የስልጠና መርሃ ግብራችንን ይቀላቀሉ።")
+  morningStartTime            String   @default("08:00")
+  morningEndTime              String   @default("09:30")
+  afternoonStartTime          String   @default("12:00")
+  afternoonEndTime            String   @default("13:30")
+  registrationOpen            Boolean  @default(true)
+  maxUploadSizeMb             Int      @default(5)
+  duplicatePhoneScheduleBlock Boolean  @default(true)
+  logoFileKey                 String?
+  heroImageFileKey            String?
+  aboutImageFileKey           String?
+  updatedAt                   DateTime @updatedAt
+  contactPersonName           String   @default("መምህር ዲያቆን አሸናፊ")
+  contactPersonPhone          String   @default("0993184466")
+  location                    String   @default("ጉብሬ ቤተ-ማርያም አጠገብ")
+}
+
+model AuditLog {
+  id             String        @id @default(cuid())
+  userId         String?
+  action         String
+  entityType     String
+  entityId       String
+  registrationId String?
+  metadata       Json?
+  createdAt      DateTime      @default(now())
+  registration   Registration? @relation(fields: [registrationId], references: [id])
+  user           AdminUser?    @relation(fields: [userId], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
 
 enum AdminRole {
   SUPER_ADMIN
@@ -23,6 +134,13 @@ enum ApplicantType {
   EMPLOYEE
 }
 
+enum PackageType {
+  REGULAR
+  SPECIAL
+  HOME_TO_HOME
+  KRAR
+}
+
 enum StudentYear {
   REMEDIAL
   YEAR_1
@@ -33,198 +151,15 @@ enum StudentYear {
   YEAR_6
 }
 
-enum RegistrationStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  CANCELLED
-}
-
-enum PaymentStatus {
-  PENDING_VERIFICATION
-  VERIFIED
-  REJECTED
-}
-
 enum SessionName {
   MORNING
   AFTERNOON
 }
 
-// ---------------------------------------------------------------------------
-// ADMIN USERS
-// ---------------------------------------------------------------------------
-
-model AdminUser {
-  id           String    @id @default(cuid())
-  fullName     String
-  email        String    @unique
-  passwordHash String
-  role         AdminRole @default(REGISTRATION_ADMIN)
-  isActive     Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-
-  verifiedPayments Payment[]   @relation("VerifiedBy")
-  auditLogs        AuditLog[]
-
-  @@index([email])
-}
-
-// ---------------------------------------------------------------------------
-// SCHEDULES
-// ---------------------------------------------------------------------------
-
-// days stored as a comma-free array of ISO weekday abbreviations, e.g. ["MON","WED","FRI"]
-model Schedule {
-  id        String      @id @default(cuid())
-  name      String // e.g. "Schedule A"
-  days      String[] // ["MON","WED","FRI"]
-  session   SessionName
-  startTime String // "12:00" 24h HH:mm, configurable by admin
-  endTime   String // "13:30"
-  capacity  Int         @default(30)
-  isActive  Boolean     @default(true)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-
-  registrations Registration[]
-
-  @@index([isActive])
-}
-
-// ---------------------------------------------------------------------------
-// REGISTRATIONS
-// ---------------------------------------------------------------------------
-
-model Registration {
-  id                 String              @id @default(cuid())
-  registrationNumber String              @unique // BYMS-2026-000001
-  fullName           String
-  phone              String // normalized E.164-like local format, e.g. 2519XXXXXXXX
-  applicantType      ApplicantType
-  studentYear        StudentYear?
-  department         String?
-  scheduleId         String
-  schedule           Schedule            @relation(fields: [scheduleId], references: [id])
-  registrationStatus RegistrationStatus  @default(PENDING)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-
-  payment       Payment?
-  uploadedFiles UploadedFile[]
-  auditLogs     AuditLog[]
-
-  @@index([phone])
-  @@index([scheduleId])
-  @@index([registrationStatus])
-  @@index([createdAt])
-  @@index([registrationNumber])
-}
-
-// A running counter used to atomically generate sequential registration numbers per year.
-model RegistrationCounter {
-  year    Int @id
-  current Int @default(0)
-}
-
-// ---------------------------------------------------------------------------
-// PAYMENTS
-// ---------------------------------------------------------------------------
-
-model Payment {
-  id               String        @id @default(cuid())
-  registrationId   String        @unique
-  registration     Registration  @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-  registrationFee  Decimal       @db.Decimal(10, 2)
-  firstMonthFee    Decimal       @db.Decimal(10, 2)
-  totalAmount      Decimal       @db.Decimal(10, 2)
-  status           PaymentStatus @default(PENDING_VERIFICATION)
-  receiptFileId    String?       @unique
-  receiptFile      UploadedFile? @relation(fields: [receiptFileId], references: [id])
-  verifiedById     String?
-  verifiedBy       AdminUser?    @relation("VerifiedBy", fields: [verifiedById], references: [id])
-  verifiedAt       DateTime?
-  rejectionReason  String?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-
-  @@index([status])
-}
-
-// ---------------------------------------------------------------------------
-// FILES (payment receipts + site images)
-// ---------------------------------------------------------------------------
-
 enum FileKind {
-  RECEIPT
+  DOCUMENT
   LOGO
   HERO_IMAGE
   ABOUT_IMAGE
   GALLERY_IMAGE
-}
-
-model UploadedFile {
-  id               String        @id @default(cuid())
-  kind             FileKind      @default(RECEIPT)
-  registrationId   String?
-  registration     Registration? @relation(fields: [registrationId], references: [id], onDelete: Cascade)
-  storageKey       String // Vercel Blob key/pathname (private, not the same as public url)
-  originalFilename String
-  mimeType         String
-  size             Int
-  createdAt        DateTime      @default(now())
-
-  payment Payment?
-
-  @@index([registrationId])
-  @@index([kind])
-}
-
-// ---------------------------------------------------------------------------
-// SETTINGS (single-row config table)
-// ---------------------------------------------------------------------------
-
-model Settings {
-  id                    Int      @id @default(1)
-  institutionNameAm     String   @default("ቤተ-ያሬድ መንፈሳዊ መሳርያዎች ማሰልጠኛ")
-  institutionNameEn     String   @default("Bete-Yared Spiritual Instruments Training Center")
-  phone                 String   @default("+251900000000")
-  email                 String   @default("info@example.org")
-  address               String   @default("Addis Ababa, Ethiopia")
-  registrationFee       Decimal  @db.Decimal(10, 2) @default(200.00)
-  firstMonthFee         Decimal  @db.Decimal(10, 2) @default(300.00)
-  heroTitle             String   @default("ቤተ-ያሬድ መንፈሳዊ መሳርያዎች ማሰልጠኛ")
-  heroDescription       String   @default("ኦንላይን በመመዝገብ የስልጠና መርሃ ግብራችንን ይቀላቀሉ።")
-  morningStartTime      String   @default("08:00")
-  morningEndTime        String   @default("09:30")
-  afternoonStartTime    String   @default("12:00")
-  afternoonEndTime      String   @default("13:30")
-  registrationOpen      Boolean  @default(true)
-  maxUploadSizeMb        Int      @default(5)
-  duplicatePhoneScheduleBlock Boolean @default(true)
-  logoFileKey           String?
-  heroImageFileKey      String?
-  aboutImageFileKey     String?
-  updatedAt             DateTime @updatedAt
-}
-
-// ---------------------------------------------------------------------------
-// AUDIT LOG
-// ---------------------------------------------------------------------------
-
-model AuditLog {
-  id             String        @id @default(cuid())
-  userId         String?
-  user           AdminUser?    @relation(fields: [userId], references: [id])
-  action         String // e.g. "REGISTRATION_APPROVED", "PAYMENT_VERIFIED"
-  entityType     String // e.g. "Registration", "Payment", "Schedule"
-  entityId       String
-  registrationId String?
-  registration   Registration? @relation(fields: [registrationId], references: [id])
-  metadata       Json?
-  createdAt      DateTime      @default(now())
-
-  @@index([entityType, entityId])
-  @@index([createdAt])
 }

@@ -1,5 +1,5 @@
 import { STUDENT_YEAR_LABELS, formatDays, SESSION_LABELS, formatCurrencyETB } from "@/lib/utils/labels";
-import { ScheduleOption, WizardState } from "./types";
+import { PACKAGE_LABELS, PACKAGE_PRICES, REGULATIONS_AM, ScheduleOption, WizardState } from "./types";
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -14,16 +14,21 @@ export function StepReview({
   state,
   schedule,
   departmentRequired,
-  registrationFee,
-  firstMonthFee
+  agreeError,
+  onAgreeChange
 }: {
   state: WizardState;
   schedule?: ScheduleOption;
   departmentRequired: boolean;
-  registrationFee: number;
-  firstMonthFee: number;
+  agreeError?: string;
+  onAgreeChange: (agreed: boolean) => void;
 }) {
-  const total = registrationFee + firstMonthFee;
+  const isRegular = state.packageType === "REGULAR";
+  const price =
+    !isRegular && state.packageType
+      ? PACKAGE_PRICES[state.packageType as Exclude<typeof state.packageType, "REGULAR" | "">]
+      : null;
+  const referencePrice = price ? (state.applicantType === "EMPLOYEE" ? price.employee : price.student) : null;
 
   return (
     <div>
@@ -33,12 +38,13 @@ export function StepReview({
       <div className="mt-6 rounded-xl border border-brand-100 p-4">
         <Row label="ሙሉ ስም" value={state.fullName} />
         <Row label="ስልክ ቁጥር" value={state.phone} />
+        <Row label="ጥቅል" value={state.packageType ? PACKAGE_LABELS[state.packageType] : "—"} />
         <Row label="ዓይነት" value={state.applicantType === "STUDENT" ? "ተማሪ" : "ሠራተኛ"} />
         {state.applicantType === "STUDENT" && state.studentYear && (
           <Row label="ዓመት" value={STUDENT_YEAR_LABELS[state.studentYear]} />
         )}
-        {departmentRequired && state.department && <Row label="ትምህርት ክፍል" value={state.department} />}
-        {schedule && (
+        {departmentRequired && state.department && <Row label="የሚማሩት መሳርያ" value={state.department} />}
+        {isRegular && schedule && (
           <>
             <Row label="የስልጠና ጊዜ" value={schedule.name} />
             <Row label="ቀናት" value={formatDays(schedule.days)} />
@@ -48,14 +54,32 @@ export function StepReview({
             />
           </>
         )}
-        <Row label="የምዝገባ ክፍያ" value={formatCurrencyETB(registrationFee)} />
-        <Row label="የመጀመሪያ ወር ክፍያ" value={formatCurrencyETB(firstMonthFee)} />
-        <Row label="ጠቅላላ" value={formatCurrencyETB(total)} />
-        <Row label="ደረሰኝ" value={state.receiptFilename || "—"} />
+        {!isRegular && state.preferredTime && <Row label="የሚፈልጉት ጊዜ" value={state.preferredTime} />}
+        {referencePrice !== null && <Row label="ግምታዊ ክፍያ" value={formatCurrencyETB(referencePrice)} />}
+        <Row label="ሰነድ" value={state.receiptFilename || "—"} />
+      </div>
+
+      <div className="mt-6 rounded-xl border border-brand-100 bg-brand-50/50 p-4">
+        <p className="amharic text-sm font-semibold text-ink-900">ህገ ደንቦች</p>
+        <ol className="amharic mt-2 list-decimal space-y-1.5 pl-5 text-sm text-ink-900/70">
+          {REGULATIONS_AM.map((rule) => (
+            <li key={rule}>{rule}</li>
+          ))}
+        </ol>
+        <label className="amharic mt-4 flex items-start gap-2.5 text-sm font-medium text-ink-900">
+          <input
+            type="checkbox"
+            checked={state.agreedToRegulations}
+            onChange={(e) => onAgreeChange(e.target.checked)}
+            className="mt-0.5 h-4 w-4 shrink-0 rounded border-brand-300"
+          />
+          <span>ከላይ የተዘረዘሩትን ህገ ደንቦች አንብቤ ተስማምቻለሁ።</span>
+        </label>
+        {agreeError && <p className="mt-1.5 text-sm text-red-600">{agreeError}</p>}
       </div>
 
       <p className="amharic mt-4 text-xs text-ink-900/50">
-        "ምዝገባን ያስገቡ" የሚለውን ሲጫኑ መረጃዎ ወደ ማሰልጠኛው ይላካል እና ደረሰኝዎ በአስተዳዳሪ ይረጋገጣል።
+        "ምዝገባን ያስገቡ" የሚለውን ሲጫኑ መረጃዎ ወደ ማሰልጠኛው ይላካል።
       </p>
     </div>
   );

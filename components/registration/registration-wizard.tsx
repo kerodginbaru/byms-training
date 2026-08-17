@@ -10,26 +10,24 @@ import {
   YEARS_REQUIRING_DEPARTMENT
 } from "./types";
 import { StepPersonal } from "./step-personal";
+import { StepPackage } from "./step-package";
 import { StepApplicantInfo } from "./step-applicant-info";
 import { StepSchedule } from "./step-schedule";
-import { StepPayment } from "./step-payment";
+import { StepPreferredTime } from "./step-preferred-time";
+import { StepDocument } from "./step-payment";
 import { StepReview } from "./step-review";
 import { ProgressBar } from "./progress-bar";
 
-const STEP_LABELS = ["የግል መረጃ", "ተማሪ/ሠራተኛ", "የስልጠና ጊዜ", "ክፍያ", "ማረጋገጫ"];
+const STEP_LABELS = ["የግል መረጃ", "ጥቅል", "ተማሪ/ሠራተኛ", "ጊዜ", "ሰነድ", "ማረጋገጫ"];
 const TOTAL_STEPS = STEP_LABELS.length;
 
 const STORAGE_KEY = "byms_registration_draft";
 
 export function RegistrationWizard({
   schedules,
-  registrationFee,
-  firstMonthFee,
   registrationOpen
 }: {
   schedules: ScheduleOption[];
-  registrationFee: number;
-  firstMonthFee: number;
   registrationOpen: boolean;
 }) {
   const router = useRouter();
@@ -39,8 +37,6 @@ export function RegistrationWizard({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Preserve form state across step navigation (in-memory only, not localStorage,
-  // to avoid storing sensitive info like phone numbers in the browser beyond the session).
   useEffect(() => {
     try {
       const saved = sessionStorage.getItem(STORAGE_KEY);
@@ -69,6 +65,8 @@ export function RegistrationWizard({
     [state.applicantType, state.studentYear]
   );
 
+  const isRegular = state.packageType === "REGULAR";
+
   function validateStep(current: number): boolean {
     const newErrors: Record<string, string> = {};
 
@@ -80,21 +78,37 @@ export function RegistrationWizard({
     }
 
     if (current === 2) {
+      if (!state.packageType) newErrors.packageType = "እባክዎ ጥቅል ይምረጡ / Please select a package.";
+    }
+
+    if (current === 3) {
       if (!state.applicantType) newErrors.applicantType = "እባክዎ ይምረጡ / Please select applicant type.";
       if (state.applicantType === "STUDENT") {
         if (!state.studentYear) newErrors.studentYear = "እባክዎ ዓመት ይምረጡ / Please select your year.";
         if (departmentRequired && !state.department.trim()) {
-          newErrors.department = "እባክዎ ትምህርት ክፍል ይምረጡ / Please select your department.";
+          newErrors.department = "እባክዎ የሚማሩት መሳርያ ይምረጡ / Please select your department.";
         }
       }
     }
 
-    if (current === 3) {
-      if (!state.scheduleId) newErrors.scheduleId = "እባክዎ የስልጠና ጊዜ ይምረጡ / Please select your training schedule.";
+    if (current === 4) {
+      if (isRegular) {
+        if (!state.scheduleId) newErrors.scheduleId = "እባክዎ የስልጠና ጊዜ ይምረጡ / Please select your training schedule.";
+      } else {
+        if (!state.preferredTime.trim()) {
+          newErrors.preferredTime = "እባክዎ የሚፈልጉትን ጊዜ ይግለጹ / Please tell us your preferred time.";
+        }
+      }
     }
 
-    if (current === 4) {
-      if (!state.receiptFileId) newErrors.receiptFileId = "እባክዎ የክፍያ ደረሰኝ ያስገቡ / Please upload your payment receipt.";
+    if (current === 5) {
+      if (!state.receiptFileId) newErrors.receiptFileId = "እባክዎ ሰነድ ያስገቡ / Please upload a document.";
+    }
+
+    if (current === 6) {
+      if (!state.agreedToRegulations) {
+        newErrors.agreedToRegulations = "እባክዎ ህገ ደንቦቹን ተስማምተው ይቀጥሉ / Please accept the regulations to continue.";
+      }
     }
 
     setErrors(newErrors);
@@ -111,8 +125,7 @@ export function RegistrationWizard({
   }
 
   async function handleSubmit() {
-    if (!validateStep(4)) {
-      setStep(4);
+    if (!validateStep(6)) {
       return;
     }
     setSubmitting(true);
@@ -121,11 +134,14 @@ export function RegistrationWizard({
       const payload = {
         fullName: state.fullName.trim(),
         phone: state.phone.trim(),
+        packageType: state.packageType,
         applicantType: state.applicantType,
         studentYear: state.applicantType === "STUDENT" ? state.studentYear || null : null,
         department: departmentRequired ? state.department.trim() : null,
-        scheduleId: state.scheduleId,
-        receiptFileId: state.receiptFileId
+        scheduleId: isRegular ? state.scheduleId : null,
+        preferredTime: isRegular ? null : state.preferredTime.trim(),
+        receiptFileId: state.receiptFileId,
+        agreedToRegulations: state.agreedToRegulations
       };
 
       const res = await fetch("/api/registrations", {
@@ -180,7 +196,8 @@ export function RegistrationWizard({
             transition={{ duration: 0.25 }}
           >
             {step === 1 && <StepPersonal state={state} errors={errors} onChange={update} />}
-            {step === 2 && (
+            {step === 2 && <StepPackage state={state} error={errors.packageType} onChange={update} />}
+            {step === 3 && (
               <StepApplicantInfo
                 state={state}
                 errors={errors}
@@ -188,30 +205,31 @@ export function RegistrationWizard({
                 departmentRequired={departmentRequired}
               />
             )}
-            {step === 3 && (
-              <StepSchedule
-                schedules={schedules}
-                selectedId={state.scheduleId}
-                error={errors.scheduleId}
-                onSelect={(id) => update({ scheduleId: id })}
-              />
-            )}
-            {step === 4 && (
-              <StepPayment
+            {step === 4 &&
+              (isRegular ? (
+                <StepSchedule
+                  schedules={schedules}
+                  selectedId={state.scheduleId}
+                  error={errors.scheduleId}
+                  onSelect={(id) => update({ scheduleId: id })}
+                />
+              ) : (
+                <StepPreferredTime state={state} error={errors.preferredTime} onChange={update} />
+              ))}
+            {step === 5 && (
+              <StepDocument
                 state={state}
                 error={errors.receiptFileId}
-                registrationFee={registrationFee}
-                firstMonthFee={firstMonthFee}
                 onUploaded={(fileId, filename) => update({ receiptFileId: fileId, receiptFilename: filename })}
               />
             )}
-            {step === 5 && (
+            {step === 6 && (
               <StepReview
                 state={state}
                 schedule={selectedSchedule}
                 departmentRequired={departmentRequired}
-                registrationFee={registrationFee}
-                firstMonthFee={firstMonthFee}
+                agreeError={errors.agreedToRegulations}
+                onAgreeChange={(agreed) => update({ agreedToRegulations: agreed })}
               />
             )}
           </motion.div>

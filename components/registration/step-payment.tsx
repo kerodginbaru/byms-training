@@ -1,25 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { formatCurrencyETB } from "@/lib/utils/labels";
 import { WizardState } from "./types";
 
-export function StepPayment({
+export function StepDocument({
   state,
   error,
-  registrationFee,
-  firstMonthFee,
   onUploaded
 }: {
   state: WizardState;
   error?: string;
-  registrationFee: number;
-  firstMonthFee: number;
   onUploaded: (fileId: string, filename: string) => void;
 }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const total = registrationFee + firstMonthFee;
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -50,30 +44,15 @@ export function StepPayment({
 
   return (
     <div>
-      <h2 className="amharic text-xl font-bold text-ink-900">ክፍያ</h2>
-      <p className="amharic mt-1 text-sm text-ink-900/60">Payment</p>
-
-      <div className="mt-6 rounded-xl bg-brand-50 p-4">
-        <div className="flex justify-between text-sm">
-          <span className="amharic">የምዝገባ ክፍያ</span>
-          <span>{formatCurrencyETB(registrationFee)}</span>
-        </div>
-        <div className="mt-1 flex justify-between text-sm">
-          <span className="amharic">የመጀመሪያ ወር ክፍያ</span>
-          <span>{formatCurrencyETB(firstMonthFee)}</span>
-        </div>
-        <div className="mt-2 flex justify-between border-t border-brand-200 pt-2 text-base font-semibold text-brand-700">
-          <span className="amharic">ጠቅላላ</span>
-          <span>{formatCurrencyETB(total)}</span>
-        </div>
-      </div>
+      <h2 className="amharic text-xl font-bold text-ink-900">ሰነድ ያስገቡ</h2>
+      <p className="amharic mt-1 text-sm text-ink-900/60">Upload a supporting document</p>
 
       <div className="mt-6">
-        <label htmlFor="receipt" className="amharic block text-sm font-medium text-ink-900">
-          የክፍያ ደረሰኝ ያስገቡ
+        <label htmlFor="document" className="amharic block text-sm font-medium text-ink-900">
+          ፋይል ይምረጡ
         </label>
         <label
-          htmlFor="receipt"
+          htmlFor="document"
           className="mt-1.5 flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-brand-200 px-4 py-8 text-center transition hover:border-brand-400"
         >
           {uploading ? (
@@ -87,7 +66,7 @@ export function StepPayment({
             </>
           )}
           <input
-            id="receipt"
+            id="document"
             type="file"
             accept="image/jpeg,image/jpg,image/png,application/pdf"
             className="sr-only"
