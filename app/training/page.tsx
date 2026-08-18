@@ -6,6 +6,7 @@ import { PACKAGE_DESCRIPTIONS, PACKAGE_LABELS, PACKAGE_PRICES, TRAININGS_OFFERED
 
 export const metadata: Metadata = { title: "የስልጠና መርሃ ግብር" };
 export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 export default async function TrainingPage() {
   const schedules = await getScheduleAvailability();

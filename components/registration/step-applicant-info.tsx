@@ -76,21 +76,16 @@ export function StepApplicantInfo({
           {departmentRequired && (
             <div>
               <label htmlFor="department" className="amharic block text-sm font-medium text-ink-900">
-                የሚማሩት መሳርያ
+                ትምህርት ክፍል
               </label>
-              <select
+              <input
                 id="department"
+                type="text"
                 value={state.department}
                 onChange={(e) => onChange({ department: e.target.value })}
+                placeholder="የትምህርት ክፍልዎን ይጻፉ"
                 className="mt-1.5 w-full rounded-xl border border-brand-200 px-4 py-3 text-base focus:border-brand-500 focus:outline-none"
-              >
-                <option value="">ይምረጡ</option>
-                {DEPARTMENT_OPTIONS.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
-                  </option>
-                ))}
-              </select>
+              />
               {errors.department && <p className="mt-1 text-sm text-red-600">{errors.department}</p>}
             </div>
           )}

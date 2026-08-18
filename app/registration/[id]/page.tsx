@@ -1,14 +1,8 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
-import {
-  STUDENT_YEAR_LABELS,
-  formatDays,
-  SESSION_LABELS,
-  REGISTRATION_STATUS_LABELS,
-  PAYMENT_STATUS_LABELS,
-  formatCurrencyETB
-} from "@/lib/utils/labels";
+import { STUDENT_YEAR_LABELS, formatDays, SESSION_LABELS } from "@/lib/utils/labels";
+import { PACKAGE_LABELS } from "@/components/registration/types";
 import { ConfirmationActions } from "@/components/registration/confirmation-actions";
 import { RegistrationQrCode } from "@/components/registration/qr-code";
 
@@ -17,7 +11,7 @@ export const metadata: Metadata = { title: "የምዝገባ ማረጋገጫ" };
 export default async function ConfirmationPage({ params }: { params: { id: string } }) {
   const registration = await prisma.registration.findUnique({
     where: { id: params.id },
-    include: { schedule: true, payment: true }
+    include: { schedule: true }
   });
 
   if (!registration) notFound();
@@ -44,24 +38,24 @@ export default async function ConfirmationPage({ params }: { params: { id: strin
           <dl className="mt-8 divide-y divide-brand-50 text-sm">
             <Row label="ሙሉ ስም" value={registration.fullName} />
             <Row label="ስልክ ቁጥር" value={registration.phone} />
+            <Row label="ጥቅል" value={PACKAGE_LABELS[registration.packageType]} />
             <Row label="ዓይነት" value={registration.applicantType === "STUDENT" ? "ተማሪ" : "ሠራተኛ"} />
             {registration.studentYear && (
               <Row label="ዓመት" value={STUDENT_YEAR_LABELS[registration.studentYear]} />
             )}
-            {registration.department && <Row label="ትምህርት ክፍል" value={registration.department} />}
-            <Row label="የስልጠና ጊዜ" value={registration.schedule.name} />
-            <Row label="ቀናት" value={formatDays(registration.schedule.days)} />
-            <Row
-              label="ክፍለ ጊዜ"
-              value={`${SESSION_LABELS[registration.schedule.session]} (${registration.schedule.startTime}–${registration.schedule.endTime})`}
-            />
-            {registration.payment && (
-              <Row label="ጠቅላላ ክፍያ" value={formatCurrencyETB(Number(registration.payment.totalAmount))} />
+            {registration.department && <Row label="የሚማሩት መሳርያ" value={registration.department} />}
+            {registration.schedule ? (
+              <>
+                <Row label="የስልጠና ጊዜ" value={registration.schedule.name} />
+                <Row label="ቀናት" value={formatDays(registration.schedule.days)} />
+                <Row
+                  label="ክፍለ ጊዜ"
+                  value={`${SESSION_LABELS[registration.schedule.session]} (${registration.schedule.startTime}–${registration.schedule.endTime})`}
+                />
+              </>
+            ) : (
+              registration.preferredTime && <Row label="የሚፈልጉት ጊዜ" value={registration.preferredTime} />
             )}
-            {registration.payment && (
-              <Row label="የክፍያ ሁኔታ" value={PAYMENT_STATUS_LABELS[registration.payment.status]} />
-            )}
-            <Row label="የምዝገባ ሁኔታ" value={REGISTRATION_STATUS_LABELS[registration.registrationStatus]} />
             <Row
               label="የተመዘገበበት ቀን"
               value={new Intl.DateTimeFormat("en-GB", { dateStyle: "long" }).format(registration.createdAt)}
@@ -72,7 +66,7 @@ export default async function ConfirmationPage({ params }: { params: { id: strin
         <ConfirmationActions />
 
         <p className="amharic mt-6 text-center text-sm text-ink-900/60">
-          እባክዎ ይህንን ቁጥር ያስቀምጡ። ደረሰኝዎ በአስተዳዳሪ ከተረጋገጠ በኋላ ምዝገባዎ ጸድቋል ተብሎ ይታወቃል።
+          እባክዎ ይህንን ቁጥር ያስቀምጡ። ማሰልጠኛው በስልክ ቁጥርዎ ደውሎ ያረጋግጣል።
         </p>
       </div>
     </div>

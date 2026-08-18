@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
 
     const record = await prisma.uploadedFile.create({
       data: {
-        kind: "RECEIPT",
+       kind: "DOCUMENT",
         storageKey: uploaded.storageKey,
         originalFilename: uploaded.originalFilename,
         mimeType: uploaded.mimeType,

@@ -14,7 +14,7 @@ export default async function AdminSchedulesPage() {
   const schedules = await prisma.schedule.findMany({ orderBy: { name: "asc" } });
   const counts = await prisma.registration.groupBy({
     by: ["scheduleId"],
-    where: { registrationStatus: { in: ["PENDING", "APPROVED"] } },
+    where: { packageType: "REGULAR" },
     _count: { _all: true }
   });
   const countMap = new Map(counts.map((c) => [c.scheduleId, c._count._all]));

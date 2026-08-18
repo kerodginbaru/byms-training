@@ -11,7 +11,7 @@ import { describe, it, expect } from "vitest";
  *   npx vitest run tests/capacity.test.ts
  */
 describe.skip("createRegistration concurrency", () => {
-  it("never allows more than `capacity` reserving registrations for one schedule", async () => {
+  it("never allows more than `capacity` registrations for one schedule (REGULAR package)", async () => {
     const { prisma } = await import("@/lib/db");
     const { createRegistration } = await import("@/lib/services/registration");
 
@@ -36,7 +36,7 @@ describe.skip("createRegistration concurrency", () => {
     const uploadedFiles = await Promise.all(
       Array.from({ length: 10 }).map(() =>
         prisma.uploadedFile.create({
-          data: { kind: "RECEIPT", storageKey: `test-${Math.random()}`, originalFilename: "r.pdf", mimeType: "application/pdf", size: 1 }
+          data: { kind: "DOCUMENT", storageKey: `test-${Math.random()}`, originalFilename: "r.pdf", mimeType: "application/pdf", size: 1 }
         })
       )
     );
@@ -48,8 +48,11 @@ describe.skip("createRegistration concurrency", () => {
         applicantType: "EMPLOYEE",
         studentYear: null,
         department: null,
+        packageType: "REGULAR",
         scheduleId: schedule.id,
-        receiptFileId: f.id
+        preferredTime: null,
+        receiptFileId: f.id,
+        agreedToRegulations: true
       }).then(
         () => "ok",
         () => "rejected"
@@ -62,7 +65,7 @@ describe.skip("createRegistration concurrency", () => {
     expect(successCount).toBe(5); // exactly `capacity`, never more
 
     const finalCount = await prisma.registration.count({
-      where: { scheduleId: schedule.id, registrationStatus: { in: ["PENDING", "APPROVED"] } }
+      where: { scheduleId: schedule.id }
     });
     expect(finalCount).toBe(5);
   });

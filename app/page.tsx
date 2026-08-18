@@ -13,6 +13,7 @@ import {
 } from "@/components/registration/types";
 
 export const revalidate = 30;
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [settings, schedules, totalCount] = await Promise.all([
@@ -25,70 +26,40 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-brand-50 to-white">
-        <div className="container-page grid items-center gap-10 py-16 sm:py-24 lg:grid-cols-2">
-          <HeroEntrance>
-            <p className="amharic mb-3 inline-block rounded-full bg-brand-100 px-4 py-1 text-sm font-medium text-brand-700">
-              ኦንላይን ምዝገባ ክፍት ነው
-            </p>
-            <h1 className="amharic text-3xl font-bold leading-tight text-ink-900 sm:text-5xl">
-              {settings?.heroTitle ?? "ቤተ-ያሬድ መንፈሳዊ መሳርያዎች ማሰልጠኛ"}
-            </h1>
-            <p className="amharic mt-4 max-w-xl text-lg text-ink-900/70">
-              {settings?.heroDescription ??
-                "ኦንላይን በመመዝገብ የስልጠና መርሃ ግብራችንን ይቀላቀሉ። ቀላል፣ ፈጣንና ደህንነቱ የተጠበቀ ምዝገባ።"}
-            </p>
-            <blockquote className="amharic mt-5 border-l-4 border-brand-300 pl-4 text-base italic text-ink-900/70">
-              "እግዚአብሔርን በመሰንቆ አመስግኑት ዐስር አውታርም ባለው በበገና ዘምሩለት"
-              <footer className="mt-1 text-sm not-italic text-ink-900/50">መዝ ፴፫፤፪</footer>
-            </blockquote>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/register"
-                className="amharic rounded-full bg-brand-500 px-7 py-3 text-base font-semibold text-white shadow-md transition hover:bg-brand-600 active:scale-95"
-              >
-                ለመመዝገብ
-              </Link>
-              <Link
-                href="/training"
-                className="amharic rounded-full border border-brand-300 px-7 py-3 text-base font-semibold text-brand-700 transition hover:bg-brand-50"
-              >
-                የስልጠና መርሃ ግብር ይመልከቱ
-              </Link>
-            </div>
-          </HeroEntrance>
-
-          <div className="relative mx-auto w-full max-w-md overflow-hidden rounded-3xl shadow-lg">
+          {/* Hero — contained photo banner */}
+      <section className="relative">
+        <div className="container-page pt-8">
+          <div className="relative h-[50vh] min-h-[320px] w-full max-w-4xl mx-auto overflow-hidden rounded-3xl shadow-lg sm:h-[55vh]">
             <Image
               src="/images/hero.jpg"
-              alt="የቤተ-ያሬድ ተማሪዎች በገና ሲጫወቱ"
-              width={1200}
-              height={1600}
-              className="h-full w-full object-cover"
+              alt="ቤተ-ያሬድ መንፈሳዊ መሳርያዎች ማሰልጠኛ"
+              fill
+              className="object-cover"
               priority
             />
-          </div>
-        </div>
-      </section>
-
-      {/* Stats */}
-      <section className="border-y border-brand-100 bg-white py-10">
-        <div className="container-page grid grid-cols-2 gap-6 sm:grid-cols-4">
-          {[
-            { label: "ጠቅላላ ምዝገባዎች", value: totalCount },
-            { label: "የተመዘገቡ ተማሪዎች", value: studentCount },
-            { label: "የስልጠና መርሃ ግብሮች", value: schedules.length },
-            { label: "ክፍት ቦታዎች", value: schedules.reduce((a, s) => a + s.remaining, 0) }
-          ].map((item) => (
-            <div key={item.label} className="text-center">
-              <p className="text-3xl font-bold text-brand-600">{item.value}</p>
-              <p className="amharic mt-1 text-sm text-ink-900/60">{item.label}</p>
+            <div className="absolute inset-0 bg-gradient-to-t from-ink-900/80 via-ink-900/30 to-ink-900/10" />
+            <div className="absolute inset-0 flex flex-col items-center justify-end p-6 text-center sm:p-10">
+              <HeroEntrance>
+                <p className="amharic mb-3 inline-block rounded-full bg-white/15 px-4 py-1 text-sm font-medium text-white backdrop-blur-sm">
+                  ኦንላይን ምዝገባ ክፍት ነው
+                </p>
+                <h1 className="amharic text-2xl font-bold leading-tight text-white sm:text-4xl">
+                  {settings?.heroTitle ?? "ቤተ-ያሬድ መንፈሳዊ መሳርያዎች ማሰልጠኛ"}
+                </h1>
+                <p className="amharic mx-auto mt-3 max-w-xl text-base text-white/85 sm:text-lg">
+                  {settings?.heroDescription ??
+                    "ኦንላይን በመመዝገብ የስልጠና መርሃ ግብራችንን ይቀላቀሉ። ቀላል፣ ፈጣንና ደህንነቱ የተጠበቀ ምዝገባ።"}
+                </p>
+              </HeroEntrance>
             </div>
-          ))}
+          </div>
+          <blockquote className="amharic mx-auto mt-5 max-w-xl border-l-4 border-brand-300 pl-4 text-center text-base italic text-ink-900/70">
+            "እግዚአብሔርን በመሰንቆ አመስግኑት ዐስር አውታርም ባለው በበገና ዘምሩለት"
+            <footer className="mt-1 text-sm not-italic text-ink-900/50">መዝ ፴፫፤፪</footer>
+          </blockquote>
         </div>
       </section>
-
+{/* Stats */}
       {/* About, with photo */}
       <section className="container-page py-16">
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
@@ -287,7 +258,32 @@ export default async function HomePage() {
           ))}
         </ol>
       </section>
+{/* Final call to action */}
+      <section className="bg-ink-900 py-16">
+        <div className="container-page text-center">
+          <h2 className="amharic text-2xl font-bold text-white sm:text-3xl">ዛሬውኑ ይመዝገቡ</h2>
+          <p className="amharic mx-auto mt-3 max-w-xl text-white/70">
+            ጥቂት ደቂቃዎችን በመውሰድ ኦንላይን ተመዝግበው የስልጠና ጉዞዎን ይጀምሩ።
+          </p>
+          <div className="mt-8 flex flex-wrap justify-center gap-3">
+            <Link
+              href="/register"
+              className="amharic rounded-full bg-brand-500 px-8 py-3.5 text-base font-semibold text-white shadow-md transition hover:bg-brand-600 active:scale-95"
+            >
+              ለመመዝገብ
+            </Link>
+            <Link
+              href="/training"
+              className="amharic rounded-full border border-white/30 px-8 py-3.5 text-base font-semibold text-white transition hover:bg-white/10"
+            >
+              የስልጠና መርሃ ግብር ይመልከቱ
+            </Link>
+          </div>
+        </div>
+      </section>
 
+      {/* Contact */}
+      
       {/* Contact */}
       <section className="bg-brand-50/50 py-16">
         <div className="container-page">

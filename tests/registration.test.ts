@@ -18,8 +18,11 @@ describe("registrationSchema conditional logic", () => {
   const base = {
     fullName: "Abebe Kebede",
     phone: "0911223344",
+    packageType: "REGULAR" as const,
     scheduleId: "sched_1",
-    receiptFileId: "file_1"
+    preferredTime: null,
+    receiptFileId: "file_1",
+    agreedToRegulations: true as const
   };
 
   it("requires department for Year >= 2 students", () => {
@@ -68,6 +71,44 @@ describe("registrationSchema conditional logic", () => {
       applicantType: "EMPLOYEE",
       studentYear: null,
       department: null
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("requires scheduleId for REGULAR package", () => {
+    const result = registrationSchema.safeParse({
+      ...base,
+      applicantType: "EMPLOYEE",
+      studentYear: null,
+      department: null,
+      packageType: "REGULAR",
+      scheduleId: null
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("requires preferredTime for non-REGULAR packages", () => {
+    const result = registrationSchema.safeParse({
+      ...base,
+      applicantType: "EMPLOYEE",
+      studentYear: null,
+      department: null,
+      packageType: "SPECIAL",
+      scheduleId: null,
+      preferredTime: null
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a valid SPECIAL package registration with preferredTime", () => {
+    const result = registrationSchema.safeParse({
+      ...base,
+      applicantType: "EMPLOYEE",
+      studentYear: null,
+      department: null,
+      packageType: "SPECIAL",
+      scheduleId: null,
+      preferredTime: "Saturday afternoon"
     });
     expect(result.success).toBe(true);
   });

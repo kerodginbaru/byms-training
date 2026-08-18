@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 
 export const metadata: Metadata = { title: "አድራሻ" };
+export const dynamic = "force-dynamic";
 
 export default async function ContactPage() {
   const settings = await prisma.settings.findUnique({ where: { id: 1 } });

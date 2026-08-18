@@ -58,12 +58,11 @@ async function main() {
   });
 
   const scheduleDefs = [
-    { name: "Schedule A", days: ["MON", "WED", "FRI"], session: "MORNING" as const, startTime: "08:00", endTime: "09:30" },
-    { name: "Schedule B", days: ["MON", "WED", "FRI"], session: "AFTERNOON" as const, startTime: "12:00", endTime: "13:30" },
-    { name: "Schedule C", days: ["TUE", "THU", "SAT"], session: "MORNING" as const, startTime: "08:00", endTime: "09:30" },
-    { name: "Schedule D", days: ["TUE", "THU", "SAT"], session: "AFTERNOON" as const, startTime: "12:00", endTime: "13:30" }
+       { name: "Schedule A", days: ["MON", "WED", "FRI"], session: "MORNING" as const, startTime: "12:00", endTime: "1:30" },
+    { name: "Schedule B", days: ["MON", "WED", "FRI"], session: "AFTERNOON" as const, startTime: "12:00", endTime: "1:30" },
+    { name: "Schedule C", days: ["TUE", "THU", "SAT"], session: "MORNING" as const, startTime: "12:00", endTime: "1:30" },
+    { name: "Schedule D", days: ["TUE", "THU", "SAT"], session: "AFTERNOON" as const, startTime: "12:00", endTime: "1:30" }
   ];
-
   const schedules = [];
   for (const def of scheduleDefs) {
     const existing = await prisma.schedule.findFirst({ where: { name: def.name } });

@@ -5,6 +5,7 @@ import { TRAININGS_OFFERED } from "@/components/registration/types";
 import { PhotoGallery } from "@/components/layout/photo-gallery";
 
 export const metadata: Metadata = { title: "ስለ እኛ" };
+export const dynamic = "force-dynamic";
 
 export default async function AboutPage() {
   const settings = await prisma.settings.findUnique({ where: { id: 1 } });

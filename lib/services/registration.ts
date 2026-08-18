@@ -84,14 +84,14 @@ export async function createRegistration(input: RegistrationInput) {
         }
       });
 
-      return registration as CreateRegistrationResult;
-    });
+          return registration as CreateRegistrationResult;
+    }, { maxWait: 10000, timeout: 20000 });
   }
 
   return prisma.$transaction(
     async (tx) => {
       const lockedSchedules = await tx.$queryRaw
-        { id: string; capacity: number; isActive: boolean }[]
+       < { id: string; capacity: number; isActive: boolean }[]
       >(Prisma.sql`
         SELECT "id", "capacity", "isActive"
         FROM "Schedule"
@@ -158,7 +158,7 @@ export async function createRegistration(input: RegistrationInput) {
 
       return registration as CreateRegistrationResult;
     },
-    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, maxWait: 10000, timeout: 20000 }
   );
 }
 
