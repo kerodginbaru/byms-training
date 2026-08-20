@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
@@ -6,7 +7,11 @@ import { uploadSiteImage } from "@/lib/storage/blob";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminSettingsPage() {
+export default async function AdminSettingsPage({
+  searchParams
+}: {
+  searchParams: { error?: string; saved?: string };
+}) {
   await requirePermission("settings:write");
   const settings = await prisma.settings.findUnique({ where: { id: 1 } });
 
@@ -34,7 +39,11 @@ export default async function AdminSettingsPage() {
       duplicatePhoneScheduleBlock: formData.get("duplicatePhoneScheduleBlock") === "on"
     });
 
-    if (!parsed.success) return;
+    if (!parsed.success) {
+      const firstIssue = parsed.error.issues[0];
+      const message = `${firstIssue.path.join(".")}: ${firstIssue.message}`;
+      redirect(`/admin/settings?error=${encodeURIComponent(message)}`);
+    }
 
     await prisma.settings.upsert({
       where: { id: 1 },
@@ -44,6 +53,7 @@ export default async function AdminSettingsPage() {
 
     revalidatePath("/admin/settings");
     revalidatePath("/");
+    redirect("/admin/settings?saved=1");
   }
 
   async function uploadLogo(formData: FormData) {
@@ -65,9 +75,19 @@ export default async function AdminSettingsPage() {
     <div className="mx-auto max-w-3xl space-y-8">
       <h1 className="text-2xl font-bold text-ink-900">Settings</h1>
 
-      <form action={saveSettings} className="space-y-6 rounded-2xl border border-brand-100 bg-white p-6">
+      {searchParams.error && (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          Could not save: {decodeURIComponent(searchParams.error)}
+        </div>
+      )}
+      {searchParams.saved && (
+        <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-sm text-green-700">
+          Settings saved successfully.
+        </div>
+      )}
+
+              <form action={saveSettings} className="space-y-6 rounded-2xl border border-brand-100 bg-white p-6">
         <Field label="Institution Name (Amharic)" name="institutionNameAm" defaultValue={settings?.institutionNameAm} />
-        <Field label="Institution Name (English)" name="institutionNameEn" defaultValue={settings?.institutionNameEn} />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Phone" name="phone" defaultValue={settings?.phone} />
           <Field label="Email" name="email" type="email" defaultValue={settings?.email} />
