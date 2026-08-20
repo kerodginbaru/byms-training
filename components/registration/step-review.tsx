@@ -23,13 +23,9 @@ export function StepReview({
   agreeError?: string;
   onAgreeChange: (agreed: boolean) => void;
 }) {
-  const isRegular = state.packageType === "REGULAR";
-  const price =
-    !isRegular && state.packageType
-      ? PACKAGE_PRICES[state.packageType as Exclude<typeof state.packageType, "REGULAR" | "">]
-      : null;
+    const isRegular = state.packageType === "REGULAR";
+  const price = state.packageType ? PACKAGE_PRICES[state.packageType] : null;
   const referencePrice = price ? (state.applicantType === "EMPLOYEE" ? price.employee : price.student) : null;
-
   return (
     <div>
       <h2 className="amharic text-xl font-bold text-ink-900">የመመዝገቢያ ማጠቃለያ</h2>
@@ -55,7 +51,7 @@ export function StepReview({
           </>
         )}
         {!isRegular && state.preferredTime && <Row label="የሚፈልጉት ጊዜ" value={state.preferredTime} />}
-        {referencePrice !== null && <Row label="ግምታዊ ክፍያ" value={formatCurrencyETB(referencePrice)} />}
+        {referencePrice !== null && <Row label="የመጀመሪያ ወር ክፍያ" value={formatCurrencyETB(referencePrice)} />}
         <Row label="ሰነድ" value={state.receiptFilename || "—"} />
       </div>
 

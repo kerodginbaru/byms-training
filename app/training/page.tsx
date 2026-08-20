@@ -5,7 +5,6 @@ import { formatDays, SESSION_LABELS, formatCurrencyETB } from "@/lib/utils/label
 import { PACKAGE_DESCRIPTIONS, PACKAGE_LABELS, PACKAGE_PRICES, TRAININGS_OFFERED } from "@/components/registration/types";
 
 export const metadata: Metadata = { title: "የስልጠና መርሃ ግብር" };
-export const revalidate = 30;
 export const dynamic = "force-dynamic";
 
 export default async function TrainingPage() {
@@ -23,12 +22,9 @@ export default async function TrainingPage() {
         ))}
       </div>
 
+      {/* Packages */}
       <h2 className="amharic mt-10 text-xl font-bold text-ink-900">ጥቅሎች</h2>
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
-          <p className="amharic font-semibold text-brand-700">{PACKAGE_LABELS.REGULAR}</p>
-          <p className="amharic mt-1 text-sm text-ink-900/60">{PACKAGE_DESCRIPTIONS.REGULAR}</p>
-        </div>
         {(Object.keys(PACKAGE_PRICES) as (keyof typeof PACKAGE_PRICES)[]).map((key) => (
           <div key={key} className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
             <p className="amharic font-semibold text-brand-700">{PACKAGE_LABELS[key]}</p>
@@ -43,6 +39,7 @@ export default async function TrainingPage() {
         ))}
       </div>
 
+      {/* Regular schedule slots */}
       <h2 className="amharic mt-10 text-xl font-bold text-ink-900">የመደበኛ ስልጠና መርሃ ግብር</h2>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">

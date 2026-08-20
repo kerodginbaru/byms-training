@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { WizardState } from "./types";
+import { formatCurrencyETB } from "@/lib/utils/labels";
+import { PACKAGE_PRICES, WizardState } from "./types";
 
 export function StepDocument({
   state,
@@ -14,6 +15,9 @@ export function StepDocument({
 }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const price = state.packageType ? PACKAGE_PRICES[state.packageType] : null;
+  const amountDue = price ? (state.applicantType === "EMPLOYEE" ? price.employee : price.student) : null;
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -44,10 +48,23 @@ export function StepDocument({
 
   return (
     <div>
-      <h2 className="amharic text-xl font-bold text-ink-900">ሰነድ ያስገቡ</h2>
-      <p className="amharic mt-1 text-sm text-ink-900/60">Upload a supporting document</p>
+      <h2 className="amharic text-xl font-bold text-ink-900">የክፍያ ማረጋገጫ ያስገቡ</h2>
+      <p className="amharic mt-1 text-sm text-ink-900/60">Upload proof of payment</p>
 
-      <div className="mt-6">
+      {amountDue !== null && (
+        <div className="mt-4 rounded-xl bg-brand-50 p-4">
+          <div className="flex justify-between text-sm">
+            <span className="amharic">የመጀመሪያ ወር ክፍያ ({state.applicantType === "EMPLOYEE" ? "ሠራተኛ" : "ተማሪ"})</span>
+            <span className="font-semibold text-brand-700">{formatCurrencyETB(amountDue)}</span>
+          </div>
+        </div>
+      )}
+
+      <p className="amharic mt-4 text-sm text-ink-900/70 leading-6">
+        የመጀመሪያ ወር ክፍያዎን ከከፈሉ በኋላ፣ የክፍያ ደረሰኝ ስክሪንሾት ወይም PDF ከ5 ሜባ ያልበለጠ ያስገቡ።
+      </p>
+
+      <div className="mt-4">
         <label htmlFor="document" className="amharic block text-sm font-medium text-ink-900">
           ፋይል ይምረጡ
         </label>
@@ -61,8 +78,8 @@ export function StepDocument({
             <span className="text-sm font-medium text-brand-700">✓ {state.receiptFilename}</span>
           ) : (
             <>
-              <span className="amharic text-sm text-ink-900/70">ፋይል ለመምረጥ ይንኩ</span>
-              <span className="mt-1 text-xs text-ink-900/40">JPG, PNG, PDF</span>
+              <span className="amharic text-sm text-ink-900/70">ስክሪንሾት ወይም PDF ለመምረጥ ይንኩ</span>
+              <span className="mt-1 text-xs text-ink-900/40">JPG, PNG, PDF · ከ5 ሜባ ያልበለጠ</span>
             </>
           )}
           <input

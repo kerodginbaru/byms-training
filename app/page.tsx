@@ -238,14 +238,6 @@ export default async function HomePage() {
               </div>
             ))}
           </div>
-          <div className="mt-10 text-center">
-            <Link
-              href="/register"
-              className="amharic inline-block rounded-full bg-brand-500 px-7 py-3 text-base font-semibold text-white shadow-md transition hover:bg-brand-600"
-            >
-              አሁን ይመዝገቡ
-            </Link>
-          </div>
         </div>
       </section>
 
@@ -265,7 +257,7 @@ export default async function HomePage() {
           <p className="amharic mx-auto mt-3 max-w-xl text-white/70">
             ጥቂት ደቂቃዎችን በመውሰድ ኦንላይን ተመዝግበው የስልጠና ጉዞዎን ይጀምሩ።
           </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
+                  <div className="mt-8 flex flex-wrap justify-center gap-3">
             <Link
               href="/register"
               className="amharic rounded-full bg-brand-500 px-8 py-3.5 text-base font-semibold text-white shadow-md transition hover:bg-brand-600 active:scale-95"
@@ -279,44 +271,16 @@ export default async function HomePage() {
               የስልጠና መርሃ ግብር ይመልከቱ
             </Link>
           </div>
+          <p className="amharic mx-auto mt-6 max-w-md text-sm text-white/60">
+            የመጀመሪያ ወር ክፍያዎን ከከፈሉ በኋላ፣ የክፍያ ደረሰኝ ስክሪንሾት ወይም PDF ከ5 ሜባ ያልበለጠ እንዲያስገቡ ይጠየቃሉ።
+          </p>
         </div>
       </section>
 
       {/* Contact */}
       
       {/* Contact */}
-      <section className="bg-brand-50/50 py-16">
-        <div className="container-page">
-          <div className="mx-auto max-w-2xl">
-            <h2 className="amharic text-center text-2xl font-bold text-ink-900 sm:text-3xl">ያግኙን</h2>
-            <div className="mt-8 rounded-2xl border border-brand-100 bg-white p-6 shadow-sm sm:p-8">
-              <dl className="amharic space-y-4 text-ink-900/80">
-                <div>
-                  <dt className="text-sm font-semibold text-brand-700">አድራሻ</dt>
-                  <dd className="mt-1">{settings?.address}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-semibold text-brand-700">የሚገኝበት ቦታ</dt>
-                  <dd className="mt-1">{settings?.location}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-semibold text-brand-700">አስተባባሪ</dt>
-                  <dd className="mt-1">
-                    {settings?.contactPersonName} —{" "}
-                    <a href={`tel:${settings?.contactPersonPhone}`} className="text-brand-600 hover:underline">
-                      {settings?.contactPersonPhone}
-                    </a>
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-semibold text-brand-700">ኢሜይል</dt>
-                  <dd className="mt-1">{settings?.email}</dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-        </div>
-      </section>
+
     </div>
   );
 }

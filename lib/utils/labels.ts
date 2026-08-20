@@ -19,8 +19,8 @@ export const DAY_LABELS: Record<string, string> = {
 };
 
 export const SESSION_LABELS: Record<string, string> = {
-  MORNING: "ንጋት",
-  AFTERNOON: "ከሰዓት"
+  MORNING: "ጠዋት",
+  AFTERNOON: "ማታ"
 };
 
 export const REGISTRATION_STATUS_LABELS: Record<string, string> = {

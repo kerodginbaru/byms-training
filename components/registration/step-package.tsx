@@ -20,7 +20,7 @@ export function StepPackage({
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
         {PACKAGE_OPTIONS.map((pkg) => {
           const selected = state.packageType === pkg;
-          const price = pkg === "REGULAR" ? null : PACKAGE_PRICES[pkg];
+          const price = PACKAGE_PRICES[pkg];
           return (
             <button
               key={pkg}

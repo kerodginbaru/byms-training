@@ -59,7 +59,8 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   agreedToRegulations: false
 };
 
-export const PACKAGE_PRICES: Record<Exclude<PackageType, "REGULAR">, { student: number; employee: number }> = {
+export const PACKAGE_PRICES: Record<PackageType, { student: number; employee: number }> = {
+  REGULAR: { student: 400, employee: 500 },
   SPECIAL: { student: 700, employee: 1000 },
   HOME_TO_HOME: { student: 1000, employee: 1300 },
   KRAR: { student: 600, employee: 700 }
