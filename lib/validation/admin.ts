@@ -26,7 +26,6 @@ export const settingsSchema = z.object({
   institutionNameAm: z.string().min(1),
   institutionNameEn: z.string().min(1),
   phone: z.string().min(1),
-  email: z.string().email(),
   address: z.string().min(1),
   location: z.string().min(1),
   contactPersonName: z.string().min(1),

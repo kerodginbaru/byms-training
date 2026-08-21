@@ -23,7 +23,6 @@ export default async function AdminSettingsPage({
       institutionNameAm: String(formData.get("institutionNameAm") ?? ""),
       institutionNameEn: String(formData.get("institutionNameEn") ?? ""),
       phone: String(formData.get("phone") ?? ""),
-      email: String(formData.get("email") ?? ""),
       address: String(formData.get("address") ?? ""),
       location: String(formData.get("location") ?? ""),
       contactPersonName: String(formData.get("contactPersonName") ?? ""),
@@ -88,6 +87,7 @@ export default async function AdminSettingsPage({
 
               <form action={saveSettings} className="space-y-6 rounded-2xl border border-brand-100 bg-white p-6">
         <Field label="Institution Name (Amharic)" name="institutionNameAm" defaultValue={settings?.institutionNameAm} />
+        <Field label="Institution Name (English)" name="institutionNameEn" defaultValue={settings?.institutionNameEn} />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Phone" name="phone" defaultValue={settings?.phone} />
         </div>
