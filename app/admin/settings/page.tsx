@@ -90,7 +90,6 @@ export default async function AdminSettingsPage({
         <Field label="Institution Name (Amharic)" name="institutionNameAm" defaultValue={settings?.institutionNameAm} />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Phone" name="phone" defaultValue={settings?.phone} />
-          <Field label="Email" name="email" type="email" defaultValue={settings?.email} />
         </div>
         <Field label="Address" name="address" defaultValue={settings?.address} />
         <Field label="Location (e.g. near a landmark)" name="location" defaultValue={settings?.location} />
@@ -112,10 +111,10 @@ export default async function AdminSettingsPage({
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Morning Start" name="morningStartTime" defaultValue={settings?.morningStartTime} placeholder="08:00" />
-          <Field label="Morning End" name="morningEndTime" defaultValue={settings?.morningEndTime} placeholder="09:30" />
+          <Field label="Morning Start" name="morningStartTime" defaultValue={settings?.morningStartTime} placeholder="12:00" />
+          <Field label="Morning End" name="morningEndTime" defaultValue={settings?.morningEndTime} placeholder="1:30" />
           <Field label="Afternoon Start" name="afternoonStartTime" defaultValue={settings?.afternoonStartTime} placeholder="12:00" />
-          <Field label="Afternoon End" name="afternoonEndTime" defaultValue={settings?.afternoonEndTime} placeholder="13:30" />
+          <Field label="Afternoon End" name="afternoonEndTime" defaultValue={settings?.afternoonEndTime} placeholder="1:30" />
         </div>
 
         <Field label="Max Upload Size (MB)" name="maxUploadSizeMb" type="number" defaultValue={String(settings?.maxUploadSizeMb ?? 5)} />

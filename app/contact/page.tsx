@@ -12,7 +12,6 @@ export default async function ContactPage() {
       <div className="amharic mt-6 space-y-2 text-ink-900/80">
         <p>አድራሻ፡ {settings?.address}</p>
         <p>ስልክ፡ {settings?.phone}</p>
-        <p>ኢሜይል፡ {settings?.email}</p>
       </div>
     </div>
   );
