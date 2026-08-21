@@ -20,6 +20,10 @@ export default function ForgotPasswordPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email })
       });
+      const contentType = response.headers.get("content-type") ?? "";
+      if (!contentType.includes("application/json")) {
+        throw new Error("The password reset service is not available in this deployment. Please redeploy the latest version.");
+      }
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Unable to request a reset link.");
       setMessage(data.message);

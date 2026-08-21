@@ -3,9 +3,17 @@ import { getSessionFromRequest } from "@/lib/auth/session";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const isPublicAdminPage =
+    pathname === "/admin/forgot-password" || pathname === "/admin/reset-password";
+  const isPublicAdminApiRoute =
+    pathname === "/api/admin/forgot-password" || pathname === "/api/admin/reset-password";
 
-  const isAdminRoute = pathname.startsWith("/admin") && pathname !== "/admin/login";
-  const isAdminApiRoute = pathname.startsWith("/api/admin") && pathname !== "/api/admin/login";
+  const isAdminRoute =
+    pathname.startsWith("/admin") && pathname !== "/admin/login" && !isPublicAdminPage;
+  const isAdminApiRoute =
+    pathname.startsWith("/api/admin") &&
+    pathname !== "/api/admin/login" &&
+    !isPublicAdminApiRoute;
 
   if (!isAdminRoute && !isAdminApiRoute) {
     return NextResponse.next();
