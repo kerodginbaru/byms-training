@@ -22,9 +22,6 @@ export default async function AdminSettingsPage({
   async function saveSettings(formData: FormData) {
     "use server";
     await requirePermission("settings:write");
-    const normalizeTime = (value: FormDataEntryValue | null) =>
-      String(value ?? "").replace(/^1:30$/, "13:30");
-
     const parsed = settingsSchema.safeParse({
       institutionNameAm: String(formData.get("institutionNameAm") ?? ""),
       institutionNameEn: String(formData.get("institutionNameEn") ?? ""),
@@ -35,10 +32,10 @@ export default async function AdminSettingsPage({
       contactPersonPhone: String(formData.get("contactPersonPhone") ?? ""),
       heroTitle: String(formData.get("heroTitle") ?? ""),
       heroDescription: String(formData.get("heroDescription") ?? ""),
-      morningStartTime: normalizeTime(formData.get("morningStartTime")),
-      morningEndTime: normalizeTime(formData.get("morningEndTime")),
-      afternoonStartTime: normalizeTime(formData.get("afternoonStartTime")),
-      afternoonEndTime: normalizeTime(formData.get("afternoonEndTime")),
+      morningStartTime: String(formData.get("morningStartTime") ?? ""),
+      morningEndTime: String(formData.get("morningEndTime") ?? ""),
+      afternoonStartTime: String(formData.get("afternoonStartTime") ?? ""),
+      afternoonEndTime: String(formData.get("afternoonEndTime") ?? ""),
       registrationOpen: formData.get("registrationOpen") === "on",
       maxUploadSizeMb: Number(formData.get("maxUploadSizeMb") ?? 5),
       duplicatePhoneScheduleBlock: formData.get("duplicatePhoneScheduleBlock") === "on"

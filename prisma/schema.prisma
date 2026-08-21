@@ -15,6 +15,8 @@ model AdminUser {
   passwordHash String
   role         AdminRole  @default(REGISTRATION_ADMIN)
   isActive     Boolean    @default(true)
+  resetTokenHash      String?
+  resetTokenExpiresAt DateTime?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   auditLogs    AuditLog[]
@@ -91,9 +93,9 @@ model Settings {
   heroTitle                   String   @default("ቤተ-ያሬድ መንፈሳዊ መሳርያዎች ማሰልጠኛ")
   heroDescription             String   @default("ኦንላይን በመመዝገብ የስልጠና መርሃ ግብራችንን ይቀላቀሉ።")
   morningStartTime            String   @default("12:00")
-  morningEndTime              String   @default("13:30")
+  morningEndTime              String   @default("1:30")
   afternoonStartTime          String   @default("12:00")
-  afternoonEndTime            String   @default("13:30")
+  afternoonEndTime            String   @default("1:30")
   registrationOpen            Boolean  @default(true)
   maxUploadSizeMb             Int      @default(5)
   duplicatePhoneScheduleBlock Boolean  @default(true)

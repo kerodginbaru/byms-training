@@ -2,11 +2,15 @@ import { revalidatePath } from "next/cache";
 import bcrypt from "bcryptjs";
 import { requirePermission } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
-import { createAdminSchema } from "@/lib/validation/admin";
+import { createAdminSchema, updateAdminEmailSchema } from "@/lib/validation/admin";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminUsersPage() {
+export default async function AdminUsersPage({
+  searchParams
+}: {
+  searchParams: { error?: string; saved?: string };
+}) {
   await requirePermission("admins:write");
   const admins = await prisma.adminUser.findMany({ orderBy: { createdAt: "asc" } });
 
@@ -44,9 +48,52 @@ export default async function AdminUsersPage() {
     revalidatePath("/admin/users");
   }
 
+  async function updateAdminEmail(formData: FormData) {
+    "use server";
+    await requirePermission("admins:write");
+    const parsed = updateAdminEmailSchema.safeParse({
+      id: String(formData.get("id") ?? ""),
+      email: String(formData.get("email") ?? "").trim()
+    });
+    if (!parsed.success) return;
+
+    await prisma.adminUser.update({
+      where: { id: parsed.data.id },
+      data: { email: parsed.data.email }
+    });
+    revalidatePath("/admin/users");
+  }
+
+  async function deleteAdmin(formData: FormData) {
+    "use server";
+    const session = await requirePermission("admins:write");
+    const id = String(formData.get("id") ?? "");
+    if (id === session.adminId) return;
+
+    const admin = await prisma.adminUser.findUnique({ where: { id } });
+    if (!admin) return;
+
+    if (admin.role === "SUPER_ADMIN") {
+      const superAdminCount = await prisma.adminUser.count({
+        where: { role: "SUPER_ADMIN", isActive: true }
+      });
+      if (superAdminCount <= 1) return;
+    }
+
+    await prisma.adminUser.delete({ where: { id } });
+    revalidatePath("/admin/users");
+  }
+
   return (
     <div className="mx-auto max-w-3xl">
       <h1 className="text-2xl font-bold text-ink-900">Administrator Users</h1>
+
+      {searchParams.error && (
+        <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{searchParams.error}</p>
+      )}
+      {searchParams.saved && (
+        <p className="mt-4 rounded-lg bg-green-50 p-3 text-sm text-green-700">Administrator updated.</p>
+      )}
 
       <div className="mt-6 overflow-x-auto rounded-xl border border-brand-100 bg-white">
         <table className="w-full text-left text-sm">
@@ -63,15 +110,31 @@ export default async function AdminUsersPage() {
             {admins.map((a) => (
               <tr key={a.id}>
                 <td className="px-4 py-3">{a.fullName}</td>
-                <td className="px-4 py-3">{a.email}</td>
+                <td className="px-4 py-3">
+                  <form action={updateAdminEmail} className="flex gap-2">
+                    <input type="hidden" name="id" value={a.id} />
+                    <input
+                      name="email"
+                      type="email"
+                      defaultValue={a.email}
+                      required
+                      className="min-w-0 rounded-lg border border-brand-200 px-2 py-1 text-sm"
+                    />
+                    <button className="text-xs font-medium text-brand-600 hover:underline">Save</button>
+                  </form>
+                </td>
                 <td className="px-4 py-3">{a.role}</td>
                 <td className="px-4 py-3">{a.isActive ? "Active" : "Deactivated"}</td>
-                <td className="px-4 py-3">
-                  <form action={toggleActive}>
+                <td className="px-4 py-3 space-x-3">
+                  <form action={toggleActive} className="inline">
                     <input type="hidden" name="id" value={a.id} />
                     <button className="text-xs font-medium text-brand-600 hover:underline">
                       {a.isActive ? "Deactivate" : "Activate"}
                     </button>
+                  </form>
+                  <form action={deleteAdmin} className="inline">
+                    <input type="hidden" name="id" value={a.id} />
+                    <button className="text-xs font-medium text-red-600 hover:underline">Delete</button>
                   </form>
                 </td>
               </tr>

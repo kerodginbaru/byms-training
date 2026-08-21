@@ -79,6 +79,9 @@ export default function AdminLoginPage() {
         >
           {loading ? "Signing in..." : "Sign In"}
         </button>
+        <a href="/admin/forgot-password" className="mt-4 block text-center text-sm text-brand-600 hover:underline">
+          Forgot password?
+        </a>
       </form>
     </div>
   );

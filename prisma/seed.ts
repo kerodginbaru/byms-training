@@ -20,9 +20,9 @@ async function main() {
       heroTitle: "ቤተ-ያሬድ መንፈሳዊ መሳርያዎች ማሰልጠኛ",
       heroDescription: "ኦንላይን በመመዝገብ የስልጠና መርሃ ግብራችንን ይቀላቀሉ።",
       morningStartTime: "12:00",
-      morningEndTime: "13:30",
+      morningEndTime: "1:30",
       afternoonStartTime: "12:00",
-      afternoonEndTime: "13:30",
+      afternoonEndTime: "1:30",
       registrationOpen: true,
       maxUploadSizeMb: 5,
       duplicatePhoneScheduleBlock: true
@@ -57,10 +57,10 @@ async function main() {
   });
 
   const scheduleDefs = [
-       { name: "Schedule A", days: ["MON", "WED", "FRI"], session: "MORNING" as const, startTime: "12:00", endTime: "13:30" },
-     { name: "Schedule B", days: ["MON", "WED", "FRI"], session: "AFTERNOON" as const, startTime: "12:00", endTime: "13:30" },
-     { name: "Schedule C", days: ["TUE", "THU", "SAT"], session: "MORNING" as const, startTime: "12:00", endTime: "13:30" },
-     { name: "Schedule D", days: ["TUE", "THU", "SAT"], session: "AFTERNOON" as const, startTime: "12:00", endTime: "13:30" }
+       { name: "Schedule A", days: ["MON", "WED", "FRI"], session: "MORNING" as const, startTime: "12:00", endTime: "1:30" },
+     { name: "Schedule B", days: ["MON", "WED", "FRI"], session: "AFTERNOON" as const, startTime: "12:00", endTime: "1:30" },
+     { name: "Schedule C", days: ["TUE", "THU", "SAT"], session: "MORNING" as const, startTime: "12:00", endTime: "1:30" },
+     { name: "Schedule D", days: ["TUE", "THU", "SAT"], session: "AFTERNOON" as const, startTime: "12:00", endTime: "1:30" }
   ];
   const schedules = [];
   for (const def of scheduleDefs) {

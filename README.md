@@ -140,8 +140,12 @@ See `.env.example`. Required:
 | `AUTH_SECRET` | Random secret ≥32 bytes for signing admin session JWTs (`openssl rand -base64 32`) |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob read/write token |
 | `NEXT_PUBLIC_APP_URL` | Public base URL, used for metadata/sitemap |
+| `RESEND_API_KEY` | Resend API key for admin password-reset emails |
+| `EMAIL_FROM` | Verified sender, for example `BYMS Admin <admin@your-domain.com>` |
 
 Never commit `.env.local`. `.gitignore` already excludes it.
+
+Password reset uses a one-hour, single-use token and Resend's free tier for email delivery. Add `RESEND_API_KEY` and a verified `EMAIL_FROM` value in Vercel before using the Forgot password link.
 
 ---
 

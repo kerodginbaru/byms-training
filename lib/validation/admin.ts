@@ -1,8 +1,19 @@
 import { z } from "zod";
 
+const timeSchema = z.string().regex(/^(?:[0-9]|1\d|2[0-3]):[0-5]\d$/, "Use H:mm or HH:mm format.");
+
 export const adminLoginSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
   password: z.string().min(8, "Password must be at least 8 characters.")
+});
+
+export const passwordResetRequestSchema = z.object({
+  email: z.string().email("Please enter a valid email address.")
+});
+
+export const passwordResetSchema = z.object({
+  token: z.string().length(64),
+  password: z.string().min(10, "Password must be at least 10 characters.")
 });
 
 export const createAdminSchema = z.object({
@@ -12,12 +23,17 @@ export const createAdminSchema = z.object({
   role: z.enum(["SUPER_ADMIN", "REGISTRATION_ADMIN", "VIEWER"])
 });
 
+export const updateAdminEmailSchema = z.object({
+  id: z.string().min(1),
+  email: z.string().email()
+});
+
 export const scheduleSchema = z.object({
   name: z.string().trim().min(1),
   days: z.array(z.enum(["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"])).min(1),
   session: z.enum(["MORNING", "AFTERNOON"]),
-  startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Use 24h HH:mm format."),
-  endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Use 24h HH:mm format."),
+  startTime: timeSchema,
+  endTime: timeSchema,
   capacity: z.number().int().min(1).max(500),
   isActive: z.boolean()
 });
@@ -32,10 +48,10 @@ export const settingsSchema = z.object({
   contactPersonPhone: z.string().min(1),
   heroTitle: z.string().min(1),
   heroDescription: z.string().min(1),
-  morningStartTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
-  morningEndTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
-  afternoonStartTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
-  afternoonEndTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
+  morningStartTime: timeSchema,
+  morningEndTime: timeSchema,
+  afternoonStartTime: timeSchema,
+  afternoonEndTime: timeSchema,
   registrationOpen: z.boolean(),
   maxUploadSizeMb: z.number().int().min(1).max(25),
   duplicatePhoneScheduleBlock: z.boolean()
