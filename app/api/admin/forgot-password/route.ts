@@ -24,13 +24,13 @@ export async function POST(req: NextRequest) {
     const resetUrl = `${getAppUrl()}/admin/reset-password?token=${token}`;
     try {
       await sendPasswordResetEmail(admin.email, resetUrl);
-    } catch {
+    } catch (error) {
       await prisma.adminUser.update({
         where: { id: admin.id },
         data: { resetTokenHash: null, resetTokenExpiresAt: null }
       });
       return NextResponse.json(
-        { error: "Password reset email is not configured or could not be sent." },
+        { error: error instanceof Error ? error.message : "Password reset email could not be sent." },
         { status: 503 }
       );
     }

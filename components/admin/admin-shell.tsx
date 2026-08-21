@@ -46,10 +46,10 @@ export function AdminShell({
         </nav>
       </aside>
 
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <AdminMobileNav nav={NAV} />
-        <header className="flex h-16 items-center justify-between border-b border-brand-100 bg-white px-6">
-          <p className="text-sm text-ink-900/60">
+        <header className="flex min-h-16 flex-wrap items-center justify-between gap-3 border-b border-brand-100 bg-white px-4 py-3 sm:px-6">
+          <p className="min-w-0 break-all text-xs text-ink-900/60 sm:text-sm">
             Signed in as <span className="font-medium text-ink-900">{email}</span> ·{" "}
             <span className="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-medium text-brand-700">
               {role}
@@ -57,7 +57,7 @@ export function AdminShell({
           </p>
           <AdminLogoutButton />
         </header>
-        <main className="p-6">{children}</main>
+        <main className="min-w-0 p-4 sm:p-6">{children}</main>
       </div>
     </div>
   );

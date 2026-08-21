@@ -48,6 +48,7 @@ export async function sendPasswordResetEmail(email: string, resetUrl: string) {
   });
 
   if (!response.ok) {
-    throw new Error("The password reset email could not be sent.");
+    const details = await response.json().catch(() => null) as { message?: string; name?: string } | null;
+    throw new Error(details?.message ?? details?.name ?? "The password reset email could not be sent.");
   }
 }

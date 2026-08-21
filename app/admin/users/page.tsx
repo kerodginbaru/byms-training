@@ -85,8 +85,8 @@ export default async function AdminUsersPage({
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <h1 className="text-2xl font-bold text-ink-900">Administrator Users</h1>
+    <div className="mx-auto max-w-5xl">
+      <h1 className="text-xl font-bold text-ink-900 sm:text-2xl">Administrator Users</h1>
 
       {searchParams.error && (
         <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">{searchParams.error}</p>
@@ -96,7 +96,7 @@ export default async function AdminUsersPage({
       )}
 
       <div className="mt-6 overflow-x-auto rounded-xl border border-brand-100 bg-white">
-        <table className="w-full text-left text-sm">
+        <table className="min-w-[760px] w-full text-left text-sm">
           <thead className="bg-brand-50 text-xs uppercase text-ink-900/50">
             <tr>
               <th className="px-4 py-3">Name</th>
@@ -118,7 +118,7 @@ export default async function AdminUsersPage({
                       type="email"
                       defaultValue={a.email}
                       required
-                      className="min-w-0 rounded-lg border border-brand-200 px-2 py-1 text-sm"
+                      className="w-52 min-w-0 rounded-lg border border-brand-200 px-2 py-1 text-sm"
                     />
                     <button className="text-xs font-medium text-brand-600 hover:underline">Save</button>
                   </form>

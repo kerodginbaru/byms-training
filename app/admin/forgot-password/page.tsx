@@ -36,7 +36,7 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="flex min-h-[70vh] items-center justify-center px-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-2xl border border-brand-100 bg-white p-8 shadow-sm">
+      <form onSubmit={handleSubmit} className="w-full max-w-sm rounded-2xl border border-brand-100 bg-white p-5 shadow-sm sm:p-8">
         <h1 className="text-xl font-bold text-ink-900">Forgot password</h1>
         <p className="mt-2 text-sm text-ink-900/60">Enter your administrator email to receive a reset link.</p>
         <label htmlFor="email" className="mt-6 block text-sm font-medium text-ink-900">Email</label>
