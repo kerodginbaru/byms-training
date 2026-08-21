@@ -9,7 +9,10 @@ export function hashResetToken(token: string) {
 
 export function getAppUrl() {
   const configuredUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (configuredUrl) return configuredUrl.replace(/\/$/, "");
+  const isLocalUrl = configuredUrl?.startsWith("http://localhost") || configuredUrl?.startsWith("http://127.0.0.1");
+  if (configuredUrl && !(process.env.NODE_ENV === "production" && isLocalUrl)) {
+    return configuredUrl.replace(/\/$/, "");
+  }
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
   return "http://localhost:3000";
 }
