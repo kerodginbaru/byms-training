@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "crypto";
 import { prisma } from "@/lib/db";
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000;
+const PRODUCTION_APP_URL = "https://byms-training-gilt.vercel.app";
 
 export function hashResetToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
@@ -10,6 +11,7 @@ export function hashResetToken(token: string) {
 export function getAppUrl() {
   const configuredUrl = process.env.NEXT_PUBLIC_APP_URL;
   const isLocalUrl = configuredUrl?.startsWith("http://localhost") || configuredUrl?.startsWith("http://127.0.0.1");
+  if (process.env.NODE_ENV === "production" && isLocalUrl) return PRODUCTION_APP_URL;
   if (configuredUrl && !(process.env.NODE_ENV === "production" && isLocalUrl)) {
     return configuredUrl.replace(/\/$/, "");
   }
