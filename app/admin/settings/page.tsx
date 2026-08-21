@@ -7,6 +7,10 @@ import { uploadSiteImage } from "@/lib/storage/blob";
 
 export const dynamic = "force-dynamic";
 
+function displayTime(value?: string | null) {
+  return value === "13:30" ? "1:30" : value;
+}
+
 export default async function AdminSettingsPage({
   searchParams
 }: {
@@ -18,6 +22,8 @@ export default async function AdminSettingsPage({
   async function saveSettings(formData: FormData) {
     "use server";
     await requirePermission("settings:write");
+    const normalizeTime = (value: FormDataEntryValue | null) =>
+      String(value ?? "").replace(/^1:30$/, "13:30");
 
     const parsed = settingsSchema.safeParse({
       institutionNameAm: String(formData.get("institutionNameAm") ?? ""),
@@ -29,10 +35,10 @@ export default async function AdminSettingsPage({
       contactPersonPhone: String(formData.get("contactPersonPhone") ?? ""),
       heroTitle: String(formData.get("heroTitle") ?? ""),
       heroDescription: String(formData.get("heroDescription") ?? ""),
-      morningStartTime: String(formData.get("morningStartTime") ?? ""),
-      morningEndTime: String(formData.get("morningEndTime") ?? ""),
-      afternoonStartTime: String(formData.get("afternoonStartTime") ?? ""),
-      afternoonEndTime: String(formData.get("afternoonEndTime") ?? ""),
+      morningStartTime: normalizeTime(formData.get("morningStartTime")),
+      morningEndTime: normalizeTime(formData.get("morningEndTime")),
+      afternoonStartTime: normalizeTime(formData.get("afternoonStartTime")),
+      afternoonEndTime: normalizeTime(formData.get("afternoonEndTime")),
       registrationOpen: formData.get("registrationOpen") === "on",
       maxUploadSizeMb: Number(formData.get("maxUploadSizeMb") ?? 5),
       duplicatePhoneScheduleBlock: formData.get("duplicatePhoneScheduleBlock") === "on"
@@ -112,9 +118,9 @@ export default async function AdminSettingsPage({
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Morning Start" name="morningStartTime" defaultValue={settings?.morningStartTime} placeholder="12:00" />
-          <Field label="Morning End" name="morningEndTime" defaultValue={settings?.morningEndTime} placeholder="1:30" />
+          <Field label="Morning End" name="morningEndTime" defaultValue={displayTime(settings?.morningEndTime)} placeholder="1:30" />
           <Field label="Afternoon Start" name="afternoonStartTime" defaultValue={settings?.afternoonStartTime} placeholder="12:00" />
-          <Field label="Afternoon End" name="afternoonEndTime" defaultValue={settings?.afternoonEndTime} placeholder="1:30" />
+          <Field label="Afternoon End" name="afternoonEndTime" defaultValue={displayTime(settings?.afternoonEndTime)} placeholder="1:30" />
         </div>
 
         <Field label="Max Upload Size (MB)" name="maxUploadSizeMb" type="number" defaultValue={String(settings?.maxUploadSizeMb ?? 5)} />
