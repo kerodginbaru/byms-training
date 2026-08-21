@@ -58,9 +58,6 @@ export function AdminShell({
           <AdminLogoutButton />
         </header>
         <main className="p-6">{children}</main>
-        <footer className="border-t border-brand-100 px-6 py-4 text-center text-xs text-ink-900/40">
-          Developed by [YOUR NAME]
-        </footer>
       </div>
     </div>
   );
