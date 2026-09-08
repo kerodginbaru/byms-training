@@ -10,7 +10,13 @@ import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
 
-export default async function RegistrationDetailPage({ params }: { params: { id: string } }) {
+export default async function RegistrationDetailPage({
+  params,
+  searchParams
+}: {
+  params: { id: string };
+  searchParams?: { certificateError?: string };
+}) {
   const session = await requirePermission("registrations:read");
 
   const registration = await prisma.registration.findUnique({
@@ -25,6 +31,11 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
   const certificate = registration.uploadedFiles
     .filter((f) => f.kind === "CERTIFICATE")
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+  const certificateError = searchParams?.certificateError === "missing-photo"
+    ? "Please choose a JPG or PNG photo before generating the certificate."
+    : searchParams?.certificateError === "failed"
+      ? "Certificate generation failed. Please try again and check the server logs if it continues."
+      : null;
 
   async function deleteAction() {
     "use server";
@@ -38,46 +49,53 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
     await requirePermission("registrations:write");
 
     const photo = formData.get("photo");
-    if (!(photo instanceof File) || photo.size === 0) return;
+    if (!(photo instanceof File) || photo.size === 0) {
+      redirect(`/admin/registrations/${params.id}?certificateError=missing-photo`);
+    }
 
-    const reg = await prisma.registration.findUnique({ where: { id: params.id } });
-    if (!reg) return;
+    try {
+      const reg = await prisma.registration.findUnique({ where: { id: params.id } });
+      if (!reg) notFound();
 
-    const uploadedPhoto = await uploadCertificatePhoto(photo);
-    const photoBytes = new Uint8Array(await photo.arrayBuffer());
+      const photoBytes = new Uint8Array(await photo.arrayBuffer());
 
-    const pdfBytes = await generateCertificatePdf({
-      fullName: reg.fullName,
-      photoBytes,
-      photoMimeType: photo.type
-    });
+      const pdfBytes = await generateCertificatePdf({
+        fullName: reg.fullName,
+        photoBytes,
+        photoMimeType: photo.type
+      });
 
-    const uploadedCert = await uploadCertificatePdf(pdfBytes, params.id);
+      const uploadedPhoto = await uploadCertificatePhoto(photo);
+      const uploadedCert = await uploadCertificatePdf(pdfBytes, params.id);
 
-    await prisma.$transaction([
-      prisma.uploadedFile.create({
-        data: {
-          kind: "CERTIFICATE_PHOTO",
-          registrationId: params.id,
-          storageKey: uploadedPhoto.storageKey,
-          originalFilename: uploadedPhoto.originalFilename,
-          mimeType: uploadedPhoto.mimeType,
-          size: uploadedPhoto.size
-        }
-      }),
-      prisma.uploadedFile.create({
-        data: {
-          kind: "CERTIFICATE",
-          registrationId: params.id,
-          storageKey: uploadedCert.storageKey,
-          originalFilename: `${reg.registrationNumber}-certificate.pdf`,
-          mimeType: "application/pdf",
-          size: uploadedCert.size
-        }
-      })
-    ]);
+      await prisma.$transaction([
+        prisma.uploadedFile.create({
+          data: {
+            kind: "CERTIFICATE_PHOTO",
+            registrationId: params.id,
+            storageKey: uploadedPhoto.storageKey,
+            originalFilename: uploadedPhoto.originalFilename,
+            mimeType: uploadedPhoto.mimeType,
+            size: uploadedPhoto.size
+          }
+        }),
+        prisma.uploadedFile.create({
+          data: {
+            kind: "CERTIFICATE",
+            registrationId: params.id,
+            storageKey: uploadedCert.storageKey,
+            originalFilename: `${reg.registrationNumber}-certificate.pdf`,
+            mimeType: "application/pdf",
+            size: uploadedCert.size
+          }
+        })
+      ]);
 
-    revalidatePath(`/admin/registrations/${params.id}`);
+      revalidatePath(`/admin/registrations/${params.id}`);
+    } catch (error) {
+      console.error("Certificate generation failed", error);
+      redirect(`/admin/registrations/${params.id}?certificateError=failed`);
+    }
   }
 
   return (
@@ -155,6 +173,9 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
 
       <section className="mt-4 rounded-2xl border border-brand-100 bg-white p-6">
         <h2 className="font-semibold text-ink-900">ሰርተፍኬት (Certificate)</h2>
+        {certificateError && (
+          <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{certificateError}</p>
+        )}
         {certificate ? (
           <>
             <p className="mt-1 text-sm text-ink-900/60">A certificate has already been generated.</p>
