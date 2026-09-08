@@ -137,12 +137,17 @@ export default async function RegistrationDetailPage({ params }: { params: { id:
       <section className="mt-4 rounded-2xl border border-brand-100 bg-white p-6">
         <h2 className="font-semibold text-ink-900">Uploaded Document</h2>
         {document ? (
-          
-           <a href={`/api/admin/receipts/${document.id}`}
-            className="mt-3 inline-block rounded-full bg-ink-900 px-4 py-2 text-sm font-medium text-white hover:opacity-90"
-          >
-            View / Download Document
-          </a>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <div className="text-sm">
+              <p className="font-medium text-ink-900">{document.originalFilename}</p>
+              <p className="text-ink-900/50">{document.mimeType} · {document.size.toLocaleString()} bytes</p>
+            </div>
+            <a href={`/api/admin/receipts/${document.id}`}
+              className="rounded-full bg-ink-900 px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+            >
+              View / Download Document
+            </a>
+          </div>
         ) : (
           <p className="mt-2 text-sm text-ink-900/50">No document uploaded.</p>
         )}

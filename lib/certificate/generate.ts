@@ -23,11 +23,11 @@ export async function generateCertificatePdf({
   photoMimeType: string;
 }): Promise<Uint8Array> {
   const templateBytes = await fs.readFile(TEMPLATE_PATH);
-  const pdfDoc = await PDFDocument.load(templateBytes);
+  const pdfDoc = await PDFDocument.load(new Uint8Array(templateBytes));
   pdfDoc.registerFontkit(fontkit as any);
 
   const fontBytes = await fs.readFile(FONT_PATH);
-  const font = await pdfDoc.embedFont(fontBytes, { subset: true });
+  const font = await pdfDoc.embedFont(new Uint8Array(fontBytes), { subset: true });
 
   const page = pdfDoc.getPages()[0];
   const { width, height } = page.getSize();

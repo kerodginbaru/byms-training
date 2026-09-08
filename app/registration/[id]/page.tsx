@@ -11,10 +11,12 @@ export const metadata: Metadata = { title: "የምዝገባ ማረጋገጫ" };
 export default async function ConfirmationPage({ params }: { params: { id: string } }) {
   const registration = await prisma.registration.findUnique({
     where: { id: params.id },
-    include: { schedule: true }
+    include: { schedule: true, uploadedFiles: true }
   });
 
   if (!registration) notFound();
+
+  const document = registration.uploadedFiles.find((file) => file.kind === "DOCUMENT");
 
   return (
     <div className="container-page py-12 sm:py-16">
@@ -60,6 +62,7 @@ export default async function ConfirmationPage({ params }: { params: { id: strin
               label="የተመዘገበበት ቀን"
               value={new Intl.DateTimeFormat("en-GB", { dateStyle: "long" }).format(registration.createdAt)}
             />
+            {document && <Row label="የተጫነ ሰነድ" value={document.originalFilename} />}
           </dl>
         </div>
 
