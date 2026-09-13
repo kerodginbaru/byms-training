@@ -43,3 +43,7 @@ export function formatDays(days: string[]) {
 export function formatCurrencyETB(amount: number) {
   return new Intl.NumberFormat("en-ET", { minimumFractionDigits: 2 }).format(amount) + " ብር";
 }
+
+export function formatCurrencyUSD(amount: number) {
+  return "$" + new Intl.NumberFormat("en-US", { minimumFractionDigits: 2 }).format(amount);
+}

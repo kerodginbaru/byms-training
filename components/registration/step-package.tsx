@@ -1,7 +1,7 @@
-import { PACKAGE_DESCRIPTIONS, PACKAGE_LABELS, PACKAGE_PRICES, PackageType, WizardState } from "./types";
-import { formatCurrencyETB } from "@/lib/utils/labels";
+import { PACKAGE_DESCRIPTIONS, PACKAGE_LABELS, PACKAGE_PRICES, PACKAGE_INTERNATIONAL_PRICES, PackageType, WizardState } from "./types";
+import { formatCurrencyETB, formatCurrencyUSD } from "@/lib/utils/labels";
 
-const PACKAGE_OPTIONS: PackageType[] = ["REGULAR", "SPECIAL", "HOME_TO_HOME", "KRAR"];
+const PACKAGE_OPTIONS: PackageType[] = ["REGULAR", "SPECIAL", "HOME_TO_HOME", "KRAR", "ONLINE_CLASS"];
 
 export function StepPackage({
   state,
@@ -32,7 +32,17 @@ export function StepPackage({
             >
               <p className="amharic font-semibold text-brand-700">{PACKAGE_LABELS[pkg]}</p>
               <p className="amharic mt-1 text-sm text-ink-900/60">{PACKAGE_DESCRIPTIONS[pkg]}</p>
-              {price && (
+              {pkg === "ONLINE_CLASS" && (
+                <>
+                  <p className="amharic mt-2 text-sm font-medium text-ink-900">
+                    Ethiopia local: {formatCurrencyETB(price.student)}
+                  </p>
+                  <p className="amharic text-sm font-medium text-ink-900">
+                    Outside Ethiopia: {formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}
+                  </p>
+                </>
+              )}
+              {pkg !== "ONLINE_CLASS" && price && (
                 <p className="amharic mt-2 text-sm font-medium text-ink-900">
                   ተማሪ፡ {formatCurrencyETB(price.student)} · ሠራተኛ፡ {formatCurrencyETB(price.employee)}
                 </p>

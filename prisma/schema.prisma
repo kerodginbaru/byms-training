@@ -31,7 +31,7 @@ model Schedule {
   session       SessionName
   startTime     String
   endTime       String
-  capacity      Int            @default(30)
+  capacity      Int            @default(40)
   isActive      Boolean        @default(true)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -140,6 +140,7 @@ enum PackageType {
   SPECIAL
   HOME_TO_HOME
   KRAR
+  ONLINE_CLASS
 }
 
 enum StudentYear {

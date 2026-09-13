@@ -1,5 +1,5 @@
 export type ApplicantType = "STUDENT" | "EMPLOYEE";
-export type PackageType = "REGULAR" | "SPECIAL" | "HOME_TO_HOME" | "KRAR";
+export type PackageType = "REGULAR" | "SPECIAL" | "HOME_TO_HOME" | "KRAR" | "ONLINE_CLASS";
 
 export type StudentYear =
   | "REMEDIAL"
@@ -63,21 +63,28 @@ export const PACKAGE_PRICES: Record<PackageType, { student: number; employee: nu
   REGULAR: { student: 400, employee: 500 },
   SPECIAL: { student: 700, employee: 1000 },
   HOME_TO_HOME: { student: 1000, employee: 1300 },
-  KRAR: { student: 600, employee: 700 }
+  KRAR: { student: 600, employee: 700 },
+  ONLINE_CLASS: { student: 1500, employee: 1500 }
+};
+
+export const PACKAGE_INTERNATIONAL_PRICES: Record<"ONLINE_CLASS", number> = {
+  ONLINE_CLASS: 30
 };
 
 export const PACKAGE_LABELS: Record<PackageType, string> = {
   REGULAR: "መደበኛ ስልጠና",
   SPECIAL: "ልዩ ጥቅል",
   HOME_TO_HOME: "ከቤት ወደ ቤት",
-  KRAR: "የክራር ልዩ ጥቅል"
+  KRAR: "የክራር ልዩ ጥቅል",
+  ONLINE_CLASS: "Online Class"
 };
 
 export const PACKAGE_DESCRIPTIONS: Record<PackageType, string> = {
   REGULAR: "በተወሰነው መርሃ ግብር (A-D) መሰረት፣ በማሰልጠኛው ቦታ",
   SPECIAL: "ጊዜው በተማሪው ምርጫ የሚወሰን ልዩ ስልጠና",
   HOME_TO_HOME: "አስተማሪው ወደ ቤትዎ በመምጣት የሚሰጥ ስልጠና",
-  KRAR: "ለክራር ትምህርት የተዘጋጀ ልዩ ጥቅል"
+  KRAR: "ለክራር ትምህርት የተዘጋጀ ልዩ ጥቅል",
+  ONLINE_CLASS: "ኢትዮጵያ ውስጥ ለ1500 ብር እና ከኢትዮጵያ ውጭ ለ30 ዶላር"
 };
 
 export const REGULATIONS_AM = [

@@ -52,7 +52,7 @@ const baseRegistrationShape = {
   }),
   studentYear: z.enum(STUDENT_YEAR_VALUES).optional().nullable(),
   department: z.string().trim().max(150).optional().nullable(),
-  packageType: z.enum(["REGULAR", "SPECIAL", "HOME_TO_HOME", "KRAR"], {
+  packageType: z.enum(["REGULAR", "SPECIAL", "HOME_TO_HOME", "KRAR", "ONLINE_CLASS"], {
     errorMap: () => ({ message: "Please select a package." })
   }),
   scheduleId: z.string().optional().nullable(),

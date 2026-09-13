@@ -75,6 +75,19 @@ describe("registrationSchema conditional logic", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts an ONLINE_CLASS package with a preferred time", () => {
+    const result = registrationSchema.safeParse({
+      ...base,
+      packageType: "ONLINE_CLASS",
+      scheduleId: null,
+      preferredTime: "ONLINE - Evening",
+      applicantType: "EMPLOYEE",
+      studentYear: null,
+      department: null
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("requires scheduleId for REGULAR package", () => {
     const result = registrationSchema.safeParse({
       ...base,
