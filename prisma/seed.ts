@@ -65,7 +65,7 @@ async function main() {
   const schedules = [];
   for (const def of scheduleDefs) {
     const existing = await prisma.schedule.findFirst({ where: { name: def.name } });
-    const s = existing ?? (await prisma.schedule.create({ data: { ...def, capacity: 30, isActive: true } }));
+    const s = existing ?? (await prisma.schedule.create({ data: { ...def, capacity: 40, isActive: true } }));
     schedules.push(s);
   }
 

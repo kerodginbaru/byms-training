@@ -30,7 +30,7 @@ export default async function AdminSchedulesPage() {
       session: String(formData.get("session") ?? "MORNING"),
       startTime: String(formData.get("startTime") ?? ""),
       endTime: String(formData.get("endTime") ?? ""),
-      capacity: Number(formData.get("capacity") ?? 30),
+      capacity: Number(formData.get("capacity") ?? 40),
       isActive: formData.get("isActive") === "on"
     });
     if (!parsed.success) return;
@@ -152,7 +152,7 @@ export default async function AdminSchedulesPage() {
           </div>
           <div>
             <label className="block text-sm font-medium">Capacity</label>
-            <input name="capacity" type="number" defaultValue={30} min={1} className="mt-1 w-full rounded-lg border border-brand-200 px-3 py-2 text-sm" />
+            <input name="capacity" type="number" defaultValue={40} min={1} className="mt-1 w-full rounded-lg border border-brand-200 px-3 py-2 text-sm" />
           </div>
           <div className="flex items-center gap-2 pt-6">
             <input id="isActive" name="isActive" type="checkbox" defaultChecked />

@@ -41,7 +41,7 @@ CREATE TABLE "Schedule" (
     "session" "SessionName" NOT NULL,
     "startTime" TEXT NOT NULL,
     "endTime" TEXT NOT NULL,
-    "capacity" INTEGER NOT NULL DEFAULT 30,
+    "capacity" INTEGER NOT NULL DEFAULT 40,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
