@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { normalizeEthiopianPhone } from "@/lib/validation/registration";
 import { registrationSchema } from "@/lib/validation/registration";
+import { PACKAGE_DESCRIPTIONS, PACKAGE_INTERNATIONAL_PRICES } from "@/components/registration/types";
 
 describe("normalizeEthiopianPhone", () => {
   it("normalizes 09XXXXXXXX", () => {
@@ -11,6 +12,13 @@ describe("normalizeEthiopianPhone", () => {
   });
   it("rejects invalid numbers", () => {
     expect(normalizeEthiopianPhone("123456")).toBeNull();
+  });
+});
+
+describe("online-class international price", () => {
+  it("shows the updated outside-Ethiopia amount in the registration package copy", () => {
+    expect(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS).toBe(50);
+    expect(PACKAGE_DESCRIPTIONS.ONLINE_CLASS).toContain("ለ50 ዶላር");
   });
 });
 

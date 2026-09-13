@@ -68,7 +68,7 @@ export const PACKAGE_PRICES: Record<PackageType, { student: number; employee: nu
 };
 
 export const PACKAGE_INTERNATIONAL_PRICES: Record<"ONLINE_CLASS", number> = {
-  ONLINE_CLASS: 30
+  ONLINE_CLASS: 50
 };
 
 export const PACKAGE_LABELS: Record<PackageType, string> = {
@@ -84,7 +84,7 @@ export const PACKAGE_DESCRIPTIONS: Record<PackageType, string> = {
   SPECIAL: "ጊዜው በተማሪው ምርጫ የሚወሰን ልዩ ስልጠና",
   HOME_TO_HOME: "አስተማሪው ወደ ቤትዎ በመምጣት የሚሰጥ ስልጠና",
   KRAR: "ለክራር ትምህርት የተዘጋጀ ልዩ ጥቅል",
-  ONLINE_CLASS: "ኢትዮጵያ ውስጥ ለ1500 ብር እና ከኢትዮጵያ ውጭ ለ30 ዶላር"
+  ONLINE_CLASS: "ኢትዮጵያ ውስጥ ለ1500 ብር እና ከኢትዮጵያ ውጭ ለ50 ዶላር"
 };
 
 export const REGULATIONS_AM = [
