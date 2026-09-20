@@ -7,26 +7,60 @@ export const dynamic = "force-dynamic";
 export default async function AdminDashboardPage() {
   await requirePermission("registrations:read");
 
-  const [schedules, studentCounts] = await Promise.all([
+  const [schedules, studentRegistrations] = await Promise.all([
     prisma.schedule.findMany({
       where: { isActive: true },
       orderBy: { name: "asc" }
     }),
-    prisma.registration.groupBy({
-      by: ["scheduleId"],
-      where: { applicantType: "STUDENT", scheduleId: { not: null } },
-      _count: { _all: true }
+    prisma.registration.findMany({
+      where: { applicantType: "STUDENT" },
+      select: {
+        id: true,
+        scheduleId: true,
+        packageType: true,
+        preferredTime: true,
+        fullName: true
+      }
     })
   ]);
 
-  const countBySchedule = new Map(
-    studentCounts.map((item) => [item.scheduleId, item._count._all])
-  );
+  const countBySchedule = new Map<string, number>();
+  const preferredTimeCounts = new Map<string, number>();
 
-  const shiftCards = schedules.map((schedule) => ({
-    ...schedule,
-    studentCount: countBySchedule.get(schedule.id) ?? 0
-  }));
+  for (const registration of studentRegistrations) {
+    if (registration.scheduleId) {
+      countBySchedule.set(registration.scheduleId, (countBySchedule.get(registration.scheduleId) ?? 0) + 1);
+      continue;
+    }
+
+    if (registration.packageType !== "REGULAR" && registration.preferredTime) {
+      const key = registration.preferredTime.trim();
+      preferredTimeCounts.set(key, (preferredTimeCounts.get(key) ?? 0) + 1);
+    }
+  }
+
+  const shiftCards = [
+    ...schedules.map((schedule) => ({
+      id: schedule.id,
+      name: schedule.name,
+      session: schedule.session,
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
+      days: schedule.days,
+      studentCount: countBySchedule.get(schedule.id) ?? 0,
+      kind: "schedule"
+    })),
+    ...Array.from(preferredTimeCounts.entries()).map(([preferredTime, studentCount]) => ({
+      id: `preferred-${preferredTime}`,
+      name: `Special / ${preferredTime}`,
+      session: null,
+      startTime: null,
+      endTime: null,
+      days: [],
+      studentCount,
+      kind: "preferred-time"
+    }))
+  ].sort((a, b) => a.name.localeCompare(b.name));
 
   const totalStudents = shiftCards.reduce((sum, shift) => sum + shift.studentCount, 0);
 
@@ -48,7 +82,7 @@ export default async function AdminDashboardPage() {
           <div key={shift.id} className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-xs uppercase tracking-wide text-ink-900/50">Shift</p>
+                <p className="text-xs uppercase tracking-wide text-ink-900/50">{shift.kind === "schedule" ? "Shift" : "Special / Preferred"}</p>
                 <h2 className="mt-1 text-xl font-bold text-ink-900">{shift.name}</h2>
               </div>
               <span className="rounded-full bg-brand-100 px-2.5 py-1 text-sm font-semibold text-brand-700">
@@ -56,11 +90,17 @@ export default async function AdminDashboardPage() {
               </span>
             </div>
 
-            <div className="mt-4 space-y-1 text-sm text-ink-900/70">
-              <p><span className="font-medium">Session:</span> {SESSION_LABELS[shift.session] ?? shift.session}</p>
-              <p><span className="font-medium">Time:</span> {shift.startTime}–{shift.endTime}</p>
-              <p><span className="font-medium">Days:</span> {formatDays(shift.days)}</p>
-            </div>
+            {shift.kind === "schedule" ? (
+              <div className="mt-4 space-y-1 text-sm text-ink-900/70">
+                <p><span className="font-medium">Session:</span> {SESSION_LABELS[shift.session as keyof typeof SESSION_LABELS] ?? shift.session}</p>
+                <p><span className="font-medium">Time:</span> {shift.startTime}–{shift.endTime}</p>
+                <p><span className="font-medium">Days:</span> {shift.days.length ? formatDays(shift.days) : "—"}</p>
+              </div>
+            ) : (
+              <div className="mt-4 text-sm text-ink-900/70">
+                <p>Included in the dashboard as a non-regular student slot.</p>
+              </div>
+            )}
           </div>
         ))}
       </div>

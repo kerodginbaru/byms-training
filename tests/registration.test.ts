@@ -40,6 +40,19 @@ describe("shift grouping and payment info", () => {
     expect(PAYMENT_ACCOUNT.accountNumber).toBe("1000138335438");
     expect(PAYMENT_ACCOUNT.accountName).toBe("Ashenafi Metaferia");
   });
+
+  it("includes special-package student registrations in the shift summary totals", () => {
+    const registrations = [
+      { id: "1", fullName: "Alice", scheduleId: "shift-a", preferredTime: null, packageType: "REGULAR", schedule: { id: "shift-a", name: "Shift A", session: "MORNING", startTime: "08:00", endTime: "10:00" } },
+      { id: "2", fullName: "Biniam", scheduleId: null, preferredTime: "Saturday evening", packageType: "SPECIAL", schedule: null },
+      { id: "3", fullName: "Chala", scheduleId: null, preferredTime: "Saturday evening", packageType: "SPECIAL", schedule: null }
+    ] as any[];
+
+    const grouped = groupRegistrationsByShift(registrations);
+
+    expect(grouped.some((group) => group.name === "Preferred time: Saturday evening")).toBe(true);
+    expect(grouped.find((group) => group.name === "Preferred time: Saturday evening")?.members).toHaveLength(2);
+  });
 });
 
 describe("registrationSchema conditional logic", () => {
