@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { getScheduleAvailability } from "@/lib/services/registration";
 import { RegistrationWizard } from "@/components/registration/registration-wizard";
+import { PAYMENT_ACCOUNT } from "@/lib/utils/registration-grouping";
 
 export const metadata: Metadata = { title: "ይመዝገቡ" };
 export const dynamic = "force-dynamic";
@@ -22,6 +23,11 @@ export default async function RegisterPage() {
           <p className="mt-1 leading-6">
             የመጀመሪያ ወር ክፍያዎን ከከፈሉ በኋላ፣ የክፍያ ደረሰኝ ስክሪንሾት ወይም PDF ከ5 ሜባ ያልበለጠ እንዲያስገቡ ስለሚጠየቁ፣ ከመመዝገብዎ በፊት ዝግጁ ያድርጉት።
           </p>
+          <div className="mt-3 rounded-lg border border-brand-200 bg-white/80 p-3">
+            <p className="font-semibold text-brand-700">የክፍያ መለያ</p>
+            <p className="mt-1">Account Name: {PAYMENT_ACCOUNT.accountName}</p>
+            <p>Account Number: {PAYMENT_ACCOUNT.accountNumber}</p>
+          </div>
         </div>
       </div>
 

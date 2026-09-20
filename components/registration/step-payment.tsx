@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { formatCurrencyETB } from "@/lib/utils/labels";
+import { PAYMENT_ACCOUNT } from "@/lib/utils/registration-grouping";
 import { PACKAGE_PRICES, WizardState } from "./types";
 
 export function StepDocument({
@@ -63,6 +64,12 @@ export function StepDocument({
       <p className="amharic mt-4 text-sm text-ink-900/70 leading-6">
         የመጀመሪያ ወር ክፍያዎን ከከፈሉ በኋላ፣ የክፍያ ደረሰኝ ስክሪንሾት ወይም PDF ከ5 ሜባ ያልበለጠ ያስገቡ።
       </p>
+
+      <div className="mt-4 rounded-xl border border-brand-200 bg-brand-50 p-4 text-sm text-ink-900/80">
+        <p className="font-semibold text-brand-700">የክፍያ መለያ</p>
+        <p className="mt-1">Account Name: {PAYMENT_ACCOUNT.accountName}</p>
+        <p>Account Number: {PAYMENT_ACCOUNT.accountNumber}</p>
+      </div>
 
       <div className="mt-4">
         <label htmlFor="document" className="amharic block text-sm font-medium text-ink-900">
