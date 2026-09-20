@@ -39,30 +39,30 @@ export default async function AdminDashboardPage() {
     }
   }
 
-  const shiftCards = [
-    ...schedules.map((schedule) => ({
-      id: schedule.id,
-      name: schedule.name,
-      session: schedule.session,
-      startTime: schedule.startTime,
-      endTime: schedule.endTime,
-      days: schedule.days,
-      studentCount: countBySchedule.get(schedule.id) ?? 0,
-      kind: "schedule"
-    })),
-    ...Array.from(preferredTimeCounts.entries()).map(([preferredTime, studentCount]) => ({
-      id: `preferred-${preferredTime}`,
-      name: `Special / ${preferredTime}`,
-      session: null,
-      startTime: null,
-      endTime: null,
-      days: [],
-      studentCount,
-      kind: "preferred-time"
-    }))
-  ].sort((a, b) => a.name.localeCompare(b.name));
+  const regularShiftCards = schedules.map((schedule) => ({
+    id: schedule.id,
+    name: schedule.name,
+    session: schedule.session,
+    startTime: schedule.startTime,
+    endTime: schedule.endTime,
+    days: schedule.days,
+    studentCount: countBySchedule.get(schedule.id) ?? 0,
+    kind: "schedule"
+  }));
 
-  const totalStudents = shiftCards.reduce((sum, shift) => sum + shift.studentCount, 0);
+  const specialShiftCards = Array.from(preferredTimeCounts.entries()).map(([preferredTime, studentCount]) => ({
+    id: `preferred-${preferredTime}`,
+    name: `Special / ${preferredTime}`,
+    session: null,
+    startTime: null,
+    endTime: null,
+    days: [],
+    studentCount,
+    kind: "preferred-time"
+  }));
+
+  const allShiftCards = [...regularShiftCards, ...specialShiftCards].sort((a, b) => a.name.localeCompare(b.name));
+  const totalStudents = allShiftCards.reduce((sum, shift) => sum + shift.studentCount, 0);
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -77,32 +77,60 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {shiftCards.map((shift) => (
-          <div key={shift.id} className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-wide text-ink-900/50">{shift.kind === "schedule" ? "Shift" : "Special / Preferred"}</p>
-                <h2 className="mt-1 text-xl font-bold text-ink-900">{shift.name}</h2>
-              </div>
-              <span className="rounded-full bg-brand-100 px-2.5 py-1 text-sm font-semibold text-brand-700">
-                {shift.studentCount}
-              </span>
-            </div>
+      <div className="space-y-6">
+        <section>
+          <h2 className="mb-4 text-lg font-semibold text-ink-900">Regular shifts</h2>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {regularShiftCards.map((shift) => (
+              <div key={shift.id} className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-xs uppercase tracking-wide text-ink-900/50">Shift</p>
+                    <h3 className="mt-1 text-xl font-bold text-ink-900">{shift.name}</h3>
+                  </div>
+                  <span className="rounded-full bg-brand-100 px-2.5 py-1 text-sm font-semibold text-brand-700">
+                    {shift.studentCount}
+                  </span>
+                </div>
 
-            {shift.kind === "schedule" ? (
-              <div className="mt-4 space-y-1 text-sm text-ink-900/70">
-                <p><span className="font-medium">Session:</span> {SESSION_LABELS[shift.session as keyof typeof SESSION_LABELS] ?? shift.session}</p>
-                <p><span className="font-medium">Time:</span> {shift.startTime}–{shift.endTime}</p>
-                <p><span className="font-medium">Days:</span> {shift.days.length ? formatDays(shift.days) : "—"}</p>
+                <div className="mt-4 space-y-1 text-sm text-ink-900/70">
+                  <p><span className="font-medium">Session:</span> {SESSION_LABELS[shift.session as keyof typeof SESSION_LABELS] ?? shift.session}</p>
+                  <p><span className="font-medium">Time:</span> {shift.startTime}–{shift.endTime}</p>
+                  <p><span className="font-medium">Days:</span> {shift.days.length ? formatDays(shift.days) : "—"}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h2 className="mb-4 text-lg font-semibold text-ink-900">Special packages</h2>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {specialShiftCards.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-brand-200 bg-brand-50 p-5 text-sm text-ink-900/60">
+                No special-package student registrations yet.
               </div>
             ) : (
-              <div className="mt-4 text-sm text-ink-900/70">
-                <p>Included in the dashboard as a non-regular student slot.</p>
-              </div>
+              specialShiftCards.map((shift) => (
+                <div key={shift.id} className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-ink-900/50">Special package</p>
+                      <h3 className="mt-1 text-xl font-bold text-ink-900">{shift.name}</h3>
+                    </div>
+                    <span className="rounded-full bg-amber-100 px-2.5 py-1 text-sm font-semibold text-amber-700">
+                      {shift.studentCount}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 text-sm text-ink-900/70">
+                    <p>Included as a non-regular student registration.</p>
+                  </div>
+                </div>
+              ))
             )}
           </div>
-        ))}
+        </section>
       </div>
     </div>
   );
