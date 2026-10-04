@@ -45,6 +45,9 @@ model Registration {
   registrationNumber  String         @unique
   fullName            String
   phone               String
+  christianName       String?
+  confessorParish     ConfessorParish?
+  confessorName       String?
   applicantType       ApplicantType
   studentYear         StudentYear?
   department          String?
@@ -151,6 +154,13 @@ enum StudentYear {
   YEAR_4
   YEAR_5
   YEAR_6
+}
+
+enum ConfessorParish {
+  GUBRE_TRINITY
+  SAINT_STEPHANOS
+  EWAN_MIKAEL
+  NONE
 }
 
 enum SessionName {

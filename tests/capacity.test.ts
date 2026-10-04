@@ -45,6 +45,9 @@ describe.skip("createRegistration concurrency", () => {
       createRegistration({
         fullName: `Concurrent User ${i}`,
         phone: `25191${String(1000000 + i).padStart(7, "0")}`,
+        christianName: "Gabriel",
+        confessorParish: "GUBRE_TRINITY",
+        confessorName: "Abba Yared",
         applicantType: "EMPLOYEE",
         studentYear: null,
         department: null,

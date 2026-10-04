@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { STUDENT_YEAR_LABELS, formatDays, SESSION_LABELS } from "@/lib/utils/labels";
-import { PACKAGE_LABELS } from "@/components/registration/types";
+import { CONFESSOR_PARISH_LABELS, PACKAGE_LABELS } from "@/components/registration/types";
 import { ConfirmationActions } from "@/components/registration/confirmation-actions";
 import { RegistrationQrCode } from "@/components/registration/qr-code";
 
@@ -40,6 +40,16 @@ export default async function ConfirmationPage({ params }: { params: { id: strin
           <dl className="mt-8 divide-y divide-brand-50 text-sm">
             <Row label="ሙሉ ስም" value={registration.fullName} />
             <Row label="ስልክ ቁጥር" value={registration.phone} />
+            {registration.christianName && (
+              <Row label="የክርስትና ስም ፡ ተስጦ" value={registration.christianName} />
+            )}
+            {registration.confessorParish && (
+              <Row label="የንስሃ አባት ደብር" value={CONFESSOR_PARISH_LABELS[registration.confessorParish]} />
+            )}
+            {registration.confessorName && <Row label="የንስሃ አባት ስም" value={registration.confessorName} />}
+            {registration.confessorParish === "NONE" && (
+              <Row label="የንስሃ አባት" value="በገና ቤት ይመድብልዎታል" />
+            )}
             <Row label="ጥቅል" value={PACKAGE_LABELS[registration.packageType]} />
             <Row label="ዓይነት" value={registration.applicantType === "STUDENT" ? "ተማሪ" : "ሠራተኛ"} />
             {registration.studentYear && (

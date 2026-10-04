@@ -59,6 +59,9 @@ describe("registrationSchema conditional logic", () => {
   const base = {
     fullName: "Abebe Kebede",
     phone: "0911223344",
+    christianName: "Gabriel",
+    confessorParish: "GUBRE_TRINITY" as const,
+    confessorName: "Abba Yared",
     packageType: "REGULAR" as const,
     scheduleId: "sched_1",
     preferredTime: null,
@@ -112,6 +115,29 @@ describe("registrationSchema conditional logic", () => {
       applicantType: "EMPLOYEE",
       studentYear: null,
       department: null
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("requires a confession father name for a selected parish", () => {
+    const result = registrationSchema.safeParse({
+      ...base,
+      applicantType: "EMPLOYEE",
+      studentYear: null,
+      department: null,
+      confessorName: ""
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts no nearby parish without a confession father name", () => {
+    const result = registrationSchema.safeParse({
+      ...base,
+      applicantType: "EMPLOYEE",
+      studentYear: null,
+      department: null,
+      confessorParish: "NONE",
+      confessorName: null
     });
     expect(result.success).toBe(true);
   });

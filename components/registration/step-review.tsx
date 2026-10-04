@@ -1,5 +1,5 @@
 import { STUDENT_YEAR_LABELS, formatDays, SESSION_LABELS, formatCurrencyETB } from "@/lib/utils/labels";
-import { PACKAGE_LABELS, PACKAGE_PRICES, REGULATIONS_AM, ScheduleOption, WizardState } from "./types";
+import { CONFESSOR_PARISH_LABELS, PACKAGE_LABELS, PACKAGE_PRICES, REGULATIONS_AM, ScheduleOption, WizardState } from "./types";
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -34,6 +34,15 @@ export function StepReview({
       <div className="mt-6 rounded-xl border border-brand-100 p-4">
         <Row label="ሙሉ ስም" value={state.fullName} />
         <Row label="ስልክ ቁጥር" value={state.phone} />
+        <Row label="የክርስትና ስም ፡ ተስጦ" value={state.christianName} />
+        <Row
+          label="የንስሃ አባት ደብር"
+          value={state.confessorParish ? CONFESSOR_PARISH_LABELS[state.confessorParish] : "—"}
+        />
+        {state.confessorName && <Row label="የንስሃ አባት ስም" value={state.confessorName} />}
+        {state.confessorParish === "NONE" && (
+          <Row label="የንስሃ አባት" value="በገና ቤት ይመድብልዎታል" />
+        )}
         <Row label="ጥቅል" value={state.packageType ? PACKAGE_LABELS[state.packageType] : "—"} />
         <Row label="ዓይነት" value={state.applicantType === "STUDENT" ? "ተማሪ" : "ሠራተኛ"} />
         {state.applicantType === "STUDENT" && state.studentYear && (

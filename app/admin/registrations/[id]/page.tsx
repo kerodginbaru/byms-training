@@ -5,7 +5,7 @@ import { deleteRegistration } from "@/lib/services/registration";
 import { generateCertificatePdf } from "@/lib/certificate/generate";
 import { uploadCertificatePdf, uploadCertificatePhoto } from "@/lib/storage/blob";
 import { STUDENT_YEAR_LABELS, formatDays, SESSION_LABELS } from "@/lib/utils/labels";
-import { PACKAGE_LABELS } from "@/components/registration/types";
+import { CONFESSOR_PARISH_LABELS, PACKAGE_LABELS } from "@/components/registration/types";
 import { revalidatePath } from "next/cache";
 
 export const dynamic = "force-dynamic";
@@ -117,6 +117,18 @@ export default async function RegistrationDetailPage({
         <dl className="mt-3 grid grid-cols-2 gap-y-2 text-sm">
           <dt className="text-ink-900/50">Full Name</dt><dd>{registration.fullName}</dd>
           <dt className="text-ink-900/50">Phone</dt><dd>{registration.phone}</dd>
+          {registration.christianName && (
+            <><dt className="text-ink-900/50">የክርስትና ስም ፡ ተስጦ</dt><dd>{registration.christianName}</dd></>
+          )}
+          {registration.confessorParish && (
+            <><dt className="text-ink-900/50">የንስሃ አባት ደብር</dt><dd>{CONFESSOR_PARISH_LABELS[registration.confessorParish]}</dd></>
+          )}
+          {registration.confessorName && (
+            <><dt className="text-ink-900/50">የንስሃ አባት ስም</dt><dd>{registration.confessorName}</dd></>
+          )}
+          {registration.confessorParish === "NONE" && (
+            <><dt className="text-ink-900/50">የንስሃ አባት</dt><dd>በገና ቤት ይመድብልዎታል</dd></>
+          )}
           <dt className="text-ink-900/50">Applicant Type</dt><dd>{registration.applicantType}</dd>
           {registration.studentYear && (
             <>

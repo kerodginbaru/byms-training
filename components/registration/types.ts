@@ -10,6 +10,15 @@ export type StudentYear =
   | "YEAR_5"
   | "YEAR_6";
 
+export type ConfessorParish = "GUBRE_TRINITY" | "SAINT_STEPHANOS" | "EWAN_MIKAEL" | "NONE";
+
+export const CONFESSOR_PARISH_LABELS: Record<ConfessorParish, string> = {
+  GUBRE_TRINITY: "ጉብሬ ቅድስት ሥላሴ",
+  SAINT_STEPHANOS: "ቅዱስ እስቲፋኖስ",
+  EWAN_MIKAEL: "ኤዋን ሚካኤል",
+  NONE: "የለም"
+};
+
 export type ScheduleOption = {
   id: string;
   name: string;
@@ -26,6 +35,9 @@ export type ScheduleOption = {
 export type WizardState = {
   fullName: string;
   phone: string;
+  christianName: string;
+  confessorParish: ConfessorParish | "";
+  confessorName: string;
   packageType: PackageType | "";
   applicantType: ApplicantType | "";
   studentYear: StudentYear | "";
@@ -48,6 +60,9 @@ export const YEARS_REQUIRING_DEPARTMENT = new Set<StudentYear>([
 export const INITIAL_WIZARD_STATE: WizardState = {
   fullName: "",
   phone: "",
+  christianName: "",
+  confessorParish: "",
+  confessorName: "",
   packageType: "",
   applicantType: "",
   studentYear: "",

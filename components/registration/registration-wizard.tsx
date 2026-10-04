@@ -40,7 +40,7 @@ export function RegistrationWizard({
   useEffect(() => {
     try {
       const saved = sessionStorage.getItem(STORAGE_KEY);
-      if (saved) setState(JSON.parse(saved));
+      if (saved) setState({ ...INITIAL_WIZARD_STATE, ...JSON.parse(saved) });
     } catch {
       /* ignore */
     }
@@ -83,6 +83,11 @@ export function RegistrationWizard({
 
     if (current === 3) {
       if (!state.applicantType) newErrors.applicantType = "እባክዎ ይምረጡ / Please select applicant type.";
+      if (!state.christianName.trim()) newErrors.christianName = "እባክዎ የክርስትና ስም ያስገቡ።";
+      if (!state.confessorParish) newErrors.confessorParish = "እባክዎ ደብር ይምረጡ።";
+      if (state.confessorParish && state.confessorParish !== "NONE" && !state.confessorName.trim()) {
+        newErrors.confessorName = "እባክዎ የንስሃ አባትዎን ስም ያስገቡ።";
+      }
       if (state.applicantType === "STUDENT") {
         if (!state.studentYear) newErrors.studentYear = "እባክዎ ዓመት ይምረጡ / Please select your year.";
         if (departmentRequired && !state.department.trim()) {
@@ -134,6 +139,9 @@ export function RegistrationWizard({
       const payload = {
         fullName: state.fullName.trim(),
         phone: state.phone.trim(),
+        christianName: state.christianName.trim(),
+        confessorParish: state.confessorParish,
+        confessorName: state.confessorParish === "NONE" ? null : state.confessorName.trim(),
         packageType: state.packageType,
         applicantType: state.applicantType,
         studentYear: state.applicantType === "STUDENT" ? state.studentYear || null : null,
