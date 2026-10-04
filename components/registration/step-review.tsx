@@ -34,7 +34,8 @@ export function StepReview({
       <div className="mt-6 rounded-xl border border-brand-100 p-4">
         <Row label="ሙሉ ስም" value={state.fullName} />
         <Row label="ስልክ ቁጥር" value={state.phone} />
-        <Row label="የክርስትና ስም ፡ ተስጦ" value={state.christianName} />
+        <Row label="የክርስትና ስም" value={state.christianName} />
+        <Row label="ተስጦ" value={state.teseto} />
         <Row
           label="የንስሃ አባት ደብር"
           value={state.confessorParish ? CONFESSOR_PARISH_LABELS[state.confessorParish] : "—"}

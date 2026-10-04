@@ -84,6 +84,7 @@ export function RegistrationWizard({
     if (current === 3) {
       if (!state.applicantType) newErrors.applicantType = "እባክዎ ይምረጡ / Please select applicant type.";
       if (!state.christianName.trim()) newErrors.christianName = "እባክዎ የክርስትና ስም ያስገቡ።";
+      if (!state.teseto.trim()) newErrors.teseto = "እባክዎ ተስጦ ያስገቡ።";
       if (!state.confessorParish) newErrors.confessorParish = "እባክዎ ደብር ይምረጡ።";
       if (state.confessorParish && state.confessorParish !== "NONE" && !state.confessorName.trim()) {
         newErrors.confessorName = "እባክዎ የንስሃ አባትዎን ስም ያስገቡ።";
@@ -140,6 +141,7 @@ export function RegistrationWizard({
         fullName: state.fullName.trim(),
         phone: state.phone.trim(),
         christianName: state.christianName.trim(),
+        teseto: state.teseto.trim(),
         confessorParish: state.confessorParish,
         confessorName: state.confessorParish === "NONE" ? null : state.confessorName.trim(),
         packageType: state.packageType,

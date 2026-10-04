@@ -41,8 +41,9 @@ export default async function ConfirmationPage({ params }: { params: { id: strin
             <Row label="ሙሉ ስም" value={registration.fullName} />
             <Row label="ስልክ ቁጥር" value={registration.phone} />
             {registration.christianName && (
-              <Row label="የክርስትና ስም ፡ ተስጦ" value={registration.christianName} />
+              <Row label="የክርስትና ስም" value={registration.christianName} />
             )}
+            {registration.teseto && <Row label="ተስጦ" value={registration.teseto} />}
             {registration.confessorParish && (
               <Row label="የንስሃ አባት ደብር" value={CONFESSOR_PARISH_LABELS[registration.confessorParish]} />
             )}

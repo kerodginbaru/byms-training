@@ -36,6 +36,7 @@ export type WizardState = {
   fullName: string;
   phone: string;
   christianName: string;
+  teseto: string;
   confessorParish: ConfessorParish | "";
   confessorName: string;
   packageType: PackageType | "";
@@ -61,6 +62,7 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   fullName: "",
   phone: "",
   christianName: "",
+  teseto: "",
   confessorParish: "",
   confessorName: "",
   packageType: "",

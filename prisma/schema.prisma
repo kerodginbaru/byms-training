@@ -46,6 +46,7 @@ model Registration {
   fullName            String
   phone               String
   christianName       String?
+  teseto              String?
   confessorParish     ConfessorParish?
   confessorName       String?
   applicantType       ApplicantType

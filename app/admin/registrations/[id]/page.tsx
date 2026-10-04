@@ -118,7 +118,10 @@ export default async function RegistrationDetailPage({
           <dt className="text-ink-900/50">Full Name</dt><dd>{registration.fullName}</dd>
           <dt className="text-ink-900/50">Phone</dt><dd>{registration.phone}</dd>
           {registration.christianName && (
-            <><dt className="text-ink-900/50">የክርስትና ስም ፡ ተስጦ</dt><dd>{registration.christianName}</dd></>
+            <><dt className="text-ink-900/50">የክርስትና ስም</dt><dd>{registration.christianName}</dd></>
+          )}
+          {registration.teseto && (
+            <><dt className="text-ink-900/50">ተስጦ</dt><dd>{registration.teseto}</dd></>
           )}
           {registration.confessorParish && (
             <><dt className="text-ink-900/50">የንስሃ አባት ደብር</dt><dd>{CONFESSOR_PARISH_LABELS[registration.confessorParish]}</dd></>

@@ -55,7 +55,7 @@ export function StepApplicantInfo({
       <div className="mt-6 space-y-5">
         <div>
           <label htmlFor="christianName" className="amharic block text-sm font-medium text-ink-900">
-            የክርስትና ስም ፡ ተስጦ
+            የክርስትና ስም
           </label>
           <input
             id="christianName"
@@ -66,6 +66,21 @@ export function StepApplicantInfo({
             aria-invalid={!!errors.christianName}
           />
           {errors.christianName && <p className="mt-1 text-sm text-red-600">{errors.christianName}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="teseto" className="amharic block text-sm font-medium text-ink-900">
+            ተስጦ
+          </label>
+          <input
+            id="teseto"
+            type="text"
+            value={state.teseto}
+            onChange={(e) => onChange({ teseto: e.target.value })}
+            className="mt-1.5 w-full rounded-xl border border-brand-200 px-4 py-3 text-base focus:border-brand-500 focus:outline-none"
+            aria-invalid={!!errors.teseto}
+          />
+          {errors.teseto && <p className="mt-1 text-sm text-red-600">{errors.teseto}</p>}
         </div>
 
         <div>

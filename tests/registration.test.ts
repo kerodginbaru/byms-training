@@ -60,6 +60,7 @@ describe("registrationSchema conditional logic", () => {
     fullName: "Abebe Kebede",
     phone: "0911223344",
     christianName: "Gabriel",
+    teseto: "በገና",
     confessorParish: "GUBRE_TRINITY" as const,
     confessorName: "Abba Yared",
     packageType: "REGULAR" as const,
@@ -110,6 +111,15 @@ describe("registrationSchema conditional logic", () => {
   });
 
   it("accepts a valid employee registration", () => {
+    const missingTeseto = registrationSchema.safeParse({
+      ...base,
+      teseto: " ",
+      applicantType: "EMPLOYEE",
+      studentYear: null,
+      department: null
+    });
+    expect(missingTeseto.success).toBe(false);
+
     const result = registrationSchema.safeParse({
       ...base,
       applicantType: "EMPLOYEE",

@@ -48,6 +48,7 @@ const baseRegistrationShape = {
     .max(150, "Full name is too long."),
   phone: phoneSchema,
   christianName: z.string().trim().min(1, "Please enter your Christian name.").max(150),
+  teseto: z.string().trim().min(1, "Please enter your teseto.").max(150),
   confessorParish: z.enum(["GUBRE_TRINITY", "SAINT_STEPHANOS", "EWAN_MIKAEL", "NONE"]),
   confessorName: z.string().trim().max(150).optional().nullable(),
   applicantType: z.enum(["STUDENT", "EMPLOYEE"], {
