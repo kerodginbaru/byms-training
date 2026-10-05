@@ -37,6 +37,18 @@ async function nextRegistrationNumber(tx: Prisma.TransactionClient, year: number
   return `BYMS-${year}-${padded}`;
 }
 
+async function withSerializableRetry<T>(operation: () => Promise<T>): Promise<T> {
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      return await operation();
+    } catch (error) {
+      const isSerializationConflict =
+        error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034";
+      if (!isSerializationConflict || attempt >= 2) throw error;
+    }
+  }
+}
+
 export type CreateRegistrationResult = {
   id: string;
   registrationNumber: string;
@@ -92,7 +104,7 @@ export async function createRegistration(input: RegistrationInput) {
     }, { maxWait: 10000, timeout: 20000 });
   }
 
-  return prisma.$transaction(
+  return withSerializableRetry(() => prisma.$transaction(
     async (tx) => {
       const lockedSchedules = await tx.$queryRaw
        < { id: string; capacity: number; isActive: boolean }[]
@@ -166,8 +178,8 @@ export async function createRegistration(input: RegistrationInput) {
 
       return registration as CreateRegistrationResult;
     },
-      { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, maxWait: 10000, timeout: 20000 }
-  );
+    { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, maxWait: 10000, timeout: 20000 }
+  ));
 }
 
 export async function getScheduleAvailability() {

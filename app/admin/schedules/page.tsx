@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { requirePermission } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
@@ -81,7 +82,14 @@ export default async function AdminSchedulesPage() {
               const full = registered >= s.capacity;
               return (
                 <tr key={s.id}>
-                  <td className="px-4 py-3 font-medium">{s.name}</td>
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin/registrations?scheduleId=${encodeURIComponent(s.id)}`}
+                      className="font-medium text-brand-700 hover:underline"
+                    >
+                      {s.name}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3">{formatDays(s.days)}</td>
                   <td className="px-4 py-3">
                     {SESSION_LABELS[s.session]} · {s.startTime}–{s.endTime}
