@@ -38,8 +38,6 @@ export const STUDENT_YEAR_VALUES = [
   "YEAR_6"
 ] as const;
 
-const YEARS_REQUIRING_DEPARTMENT = new Set(["YEAR_2", "YEAR_3", "YEAR_4", "YEAR_5", "YEAR_6"]);
-
 const baseRegistrationShape = {
   fullName: z
     .string()
@@ -55,7 +53,10 @@ const baseRegistrationShape = {
     errorMap: () => ({ message: "Please select applicant type." })
   }),
   studentYear: z.enum(STUDENT_YEAR_VALUES).optional().nullable(),
-  department: z.string().trim().max(150).optional().nullable(),
+  department: z.enum(["በገና", "ክራር", "መሰንቆ", "ከበሮ"], {
+    errorMap: () => ({ message: "Please select an instrument." })
+  }),
+  onlineLocation: z.enum(["LOCAL", "INTERNATIONAL"]).optional().nullable(),
   packageType: z.enum(["REGULAR", "SPECIAL", "HOME_TO_HOME", "KRAR", "ONLINE_CLASS"], {
     errorMap: () => ({ message: "Please select a package." })
   }),
@@ -85,34 +86,29 @@ export const registrationSchema = z
           message: "Please select your year.",
           path: ["studentYear"]
         });
-        return;
       }
-      if (YEARS_REQUIRING_DEPARTMENT.has(data.studentYear)) {
-        if (!data.department || data.department.trim().length === 0) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Please select your department.",
-            path: ["department"]
-          });
-        }
-      }
+    } else if (data.studentYear) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Year should not be set for employees.",
+        path: ["studentYear"]
+      });
     }
 
-    if (data.applicantType === "EMPLOYEE") {
-      if (data.studentYear) {
+    if (data.packageType === "ONLINE_CLASS" && data.department === "ክራር") {
+      if (!data.onlineLocation) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Year should not be set for employees.",
-          path: ["studentYear"]
+          message: "Please select whether you are in Ethiopia or abroad.",
+          path: ["onlineLocation"]
         });
       }
-      if (data.department) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Department should not be set for employees.",
-          path: ["department"]
-        });
-      }
+    } else if (data.onlineLocation) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Online location is only used for Krar online classes.",
+        path: ["onlineLocation"]
+      });
     }
 
     if (data.packageType === "REGULAR") {
@@ -139,9 +135,7 @@ export type RegistrationInput = z.infer<typeof registrationSchema>;
 export function sanitizeRegistrationPayload(data: RegistrationInput) {
   let result = data;
   if (result.applicantType === "EMPLOYEE") {
-    result = { ...result, studentYear: null, department: null };
-  } else if (result.studentYear && !YEARS_REQUIRING_DEPARTMENT.has(result.studentYear)) {
-    result = { ...result, department: null };
+    result = { ...result, studentYear: null };
   }
   if (result.packageType === "REGULAR") {
     result = { ...result, preferredTime: null };

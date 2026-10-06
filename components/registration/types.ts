@@ -1,5 +1,6 @@
 export type ApplicantType = "STUDENT" | "EMPLOYEE";
 export type PackageType = "REGULAR" | "SPECIAL" | "HOME_TO_HOME" | "KRAR" | "ONLINE_CLASS";
+export type OnlineLocation = "LOCAL" | "INTERNATIONAL";
 
 export type StudentYear =
   | "REMEDIAL"
@@ -43,20 +44,13 @@ export type WizardState = {
   applicantType: ApplicantType | "";
   studentYear: StudentYear | "";
   department: string;
+  onlineLocation: OnlineLocation | "";
   scheduleId: string;
   preferredTime: string;
   receiptFileId: string;
   receiptFilename: string;
   agreedToRegulations: boolean;
 };
-
-export const YEARS_REQUIRING_DEPARTMENT = new Set<StudentYear>([
-  "YEAR_2",
-  "YEAR_3",
-  "YEAR_4",
-  "YEAR_5",
-  "YEAR_6"
-]);
 
 export const INITIAL_WIZARD_STATE: WizardState = {
   fullName: "",
@@ -69,6 +63,7 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   applicantType: "",
   studentYear: "",
   department: "",
+  onlineLocation: "",
   scheduleId: "",
   preferredTime: "",
   receiptFileId: "",
@@ -84,9 +79,49 @@ export const PACKAGE_PRICES: Record<PackageType, { student: number; employee: nu
   ONLINE_CLASS: { student: 1500, employee: 1500 }
 };
 
+export const KRAR_PACKAGE_PRICES: Record<
+  Exclude<PackageType, "KRAR">,
+  { student: number; employee: number }
+> = {
+  REGULAR: { student: 600, employee: 700 },
+  SPECIAL: { student: 1000, employee: 1300 },
+  HOME_TO_HOME: { student: 1300, employee: 1500 },
+  ONLINE_CLASS: { student: 2000, employee: 2000 }
+};
+
 export const PACKAGE_INTERNATIONAL_PRICES: Record<"ONLINE_CLASS", number> = {
   ONLINE_CLASS: 50
 };
+
+export const REGISTRATION_PACKAGE_OPTIONS: Exclude<PackageType, "KRAR">[] = [
+  "REGULAR",
+  "SPECIAL",
+  "HOME_TO_HOME",
+  "ONLINE_CLASS"
+];
+
+export function getPackagePrice(
+  packageType: PackageType,
+  department: string,
+  applicantType: ApplicantType,
+  onlineLocation: OnlineLocation | ""
+) {
+  const prices = department === "ክራር" && packageType !== "KRAR"
+    ? KRAR_PACKAGE_PRICES[packageType]
+    : PACKAGE_PRICES[packageType];
+
+  if (packageType === "ONLINE_CLASS" && department === "ክራር" && onlineLocation === "INTERNATIONAL") {
+    return { amount: PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS, currency: "USD" as const };
+  }
+  if (packageType === "ONLINE_CLASS" && department === "ክራር" && !onlineLocation) {
+    return null;
+  }
+
+  return {
+    amount: applicantType === "EMPLOYEE" ? prices.employee : prices.student,
+    currency: "ETB" as const
+  };
+}
 
 export const PACKAGE_LABELS: Record<PackageType, string> = {
   REGULAR: "መደበኛ ስልጠና",
@@ -101,7 +136,7 @@ export const PACKAGE_DESCRIPTIONS: Record<PackageType, string> = {
   SPECIAL: "ጊዜው በተማሪው ምርጫ የሚወሰን ልዩ ስልጠና",
   HOME_TO_HOME: "አስተማሪው ወደ ቤትዎ በመምጣት የሚሰጥ ስልጠና",
   KRAR: "ለክራር ትምህርት የተዘጋጀ ልዩ ጥቅል",
-  ONLINE_CLASS: "ኢትዮጵያ ውስጥ ለ1500 ብር እና ከኢትዮጵያ ውጭ ለ50 ዶላር"
+  ONLINE_CLASS: "በኦንላይን የሚሰጥ ስልጠና፤ ክፍያው እንደ አካባቢዎ ይለያያል።"
 };
 
 export const REGULATIONS_AM = [

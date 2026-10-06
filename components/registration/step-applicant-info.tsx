@@ -1,10 +1,13 @@
 import { STUDENT_YEAR_LABELS } from "@/lib/utils/labels";
-import { CONFESSOR_PARISH_LABELS, ConfessorParish, StudentYear, WizardState } from "./types";
+import {
+  CONFESSOR_PARISH_LABELS,
+  ConfessorParish,
+  StudentYear,
+  TRAININGS_OFFERED,
+  WizardState
+} from "./types";
 
 const YEAR_OPTIONS: StudentYear[] = ["REMEDIAL", "YEAR_1", "YEAR_2", "YEAR_3", "YEAR_4", "YEAR_5", "YEAR_6"];
-
-// Department = which instrument the student is training on.
-const DEPARTMENT_OPTIONS = ["በገና", "ክራር", "መሰንቆ", "ከበሮ"];
 const CONFESSOR_PARISH_OPTIONS: ConfessorParish[] = [
   "GUBRE_TRINITY",
   "SAINT_STEPHANOS",
@@ -15,13 +18,11 @@ const CONFESSOR_PARISH_OPTIONS: ConfessorParish[] = [
 export function StepApplicantInfo({
   state,
   errors,
-  onChange,
-  departmentRequired
+  onChange
 }: {
   state: WizardState;
   errors: Record<string, string>;
   onChange: (patch: Partial<WizardState>) => void;
-  departmentRequired: boolean;
 }) {
   return (
     <div>
@@ -36,8 +37,7 @@ export function StepApplicantInfo({
             onClick={() =>
               onChange({
                 applicantType: type,
-                studentYear: type === "EMPLOYEE" ? "" : state.studentYear,
-                department: type === "EMPLOYEE" ? "" : state.department
+                studentYear: type === "EMPLOYEE" ? "" : state.studentYear
               })
             }
             className={`amharic rounded-xl border-2 px-4 py-4 text-center font-medium transition ${
@@ -140,8 +140,7 @@ export function StepApplicantInfo({
               value={state.studentYear}
               onChange={(e) =>
                 onChange({
-                  studentYear: e.target.value as StudentYear,
-                  department: ""
+                    studentYear: e.target.value as StudentYear
                 })
               }
               className="mt-1.5 w-full rounded-xl border border-brand-200 px-4 py-3 text-base focus:border-brand-500 focus:outline-none"
@@ -155,23 +154,27 @@ export function StepApplicantInfo({
             </select>
             {errors.studentYear && <p className="mt-1 text-sm text-red-600">{errors.studentYear}</p>}
           </div>
+        </div>
+      )}
 
-          {departmentRequired && (
-            <div>
-              <label htmlFor="department" className="amharic block text-sm font-medium text-ink-900">
-                ትምህርት ክፍል
-              </label>
-              <input
-                id="department"
-                type="text"
-                value={state.department}
-                onChange={(e) => onChange({ department: e.target.value })}
-                placeholder="የትምህርት ክፍልዎን ይጻፉ"
-                className="mt-1.5 w-full rounded-xl border border-brand-200 px-4 py-3 text-base focus:border-brand-500 focus:outline-none"
-              />
-              {errors.department && <p className="mt-1 text-sm text-red-600">{errors.department}</p>}
-            </div>
-          )}
+      {state.applicantType && (
+        <div className="mt-6">
+          <label htmlFor="department" className="amharic block text-sm font-medium text-ink-900">
+            የሚማሩት መሳርያ
+          </label>
+          <select
+            id="department"
+            value={state.department}
+            onChange={(e) => onChange({ department: e.target.value, onlineLocation: "" })}
+            className="mt-1.5 w-full rounded-xl border border-brand-200 px-4 py-3 text-base focus:border-brand-500 focus:outline-none"
+            aria-invalid={!!errors.department}
+          >
+            <option value="">ይምረጡ</option>
+            {TRAININGS_OFFERED.map((instrument) => (
+              <option key={instrument} value={instrument}>{instrument}</option>
+            ))}
+          </select>
+          {errors.department && <p className="mt-1 text-sm text-red-600">{errors.department}</p>}
         </div>
       )}
     </div>

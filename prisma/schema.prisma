@@ -52,6 +52,7 @@ model Registration {
   applicantType       ApplicantType
   studentYear         StudentYear?
   department          String?
+  onlineLocation      OnlineLocation?
   scheduleId          String?
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
@@ -145,6 +146,11 @@ enum PackageType {
   HOME_TO_HOME
   KRAR
   ONLINE_CLASS
+}
+
+enum OnlineLocation {
+  LOCAL
+  INTERNATIONAL
 }
 
 enum StudentYear {

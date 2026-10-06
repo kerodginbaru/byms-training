@@ -1,5 +1,5 @@
-import { STUDENT_YEAR_LABELS, formatDays, SESSION_LABELS, formatCurrencyETB } from "@/lib/utils/labels";
-import { CONFESSOR_PARISH_LABELS, PACKAGE_LABELS, PACKAGE_PRICES, REGULATIONS_AM, ScheduleOption, WizardState } from "./types";
+import { STUDENT_YEAR_LABELS, formatDays, SESSION_LABELS, formatCurrencyETB, formatCurrencyUSD } from "@/lib/utils/labels";
+import { CONFESSOR_PARISH_LABELS, getPackagePrice, PACKAGE_LABELS, REGULATIONS_AM, ScheduleOption, WizardState } from "./types";
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -13,19 +13,18 @@ function Row({ label, value }: { label: string; value: string }) {
 export function StepReview({
   state,
   schedule,
-  departmentRequired,
   agreeError,
   onAgreeChange
 }: {
   state: WizardState;
   schedule?: ScheduleOption;
-  departmentRequired: boolean;
   agreeError?: string;
   onAgreeChange: (agreed: boolean) => void;
 }) {
-    const isRegular = state.packageType === "REGULAR";
-  const price = state.packageType ? PACKAGE_PRICES[state.packageType] : null;
-  const referencePrice = price ? (state.applicantType === "EMPLOYEE" ? price.employee : price.student) : null;
+  const isRegular = state.packageType === "REGULAR";
+  const price = state.packageType && state.applicantType
+    ? getPackagePrice(state.packageType, state.department, state.applicantType, state.onlineLocation)
+    : null;
   return (
     <div>
       <h2 className="amharic text-xl font-bold text-ink-900">የመመዝገቢያ ማጠቃለያ</h2>
@@ -49,7 +48,13 @@ export function StepReview({
         {state.applicantType === "STUDENT" && state.studentYear && (
           <Row label="ዓመት" value={STUDENT_YEAR_LABELS[state.studentYear]} />
         )}
-        {departmentRequired && state.department && <Row label="የሚማሩት መሳርያ" value={state.department} />}
+        {state.department && <Row label="የሚማሩት መሳርያ" value={state.department} />}
+        {state.onlineLocation && (
+          <Row
+            label="አካባቢ"
+            value={state.onlineLocation === "LOCAL" ? "ኢትዮጵያ ውስጥ" : "ከኢትዮጵያ ውጭ"}
+          />
+        )}
         {isRegular && schedule && (
           <>
             <Row label="የስልጠና ጊዜ" value={schedule.name} />
@@ -61,7 +66,12 @@ export function StepReview({
           </>
         )}
         {!isRegular && state.preferredTime && <Row label="የሚፈልጉት ጊዜ" value={state.preferredTime} />}
-        {referencePrice !== null && <Row label="የመጀመሪያ ወር ክፍያ" value={formatCurrencyETB(referencePrice)} />}
+        {price && (
+          <Row
+            label="የመጀመሪያ ወር ክፍያ"
+            value={price.currency === "USD" ? formatCurrencyUSD(price.amount) : formatCurrencyETB(price.amount)}
+          />
+        )}
         <Row label="ሰነድ" value={state.receiptFilename || "—"} />
       </div>
 

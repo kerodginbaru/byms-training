@@ -1,13 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   INITIAL_WIZARD_STATE,
   ScheduleOption,
-  WizardState,
-  YEARS_REQUIRING_DEPARTMENT
+  WizardState
 } from "./types";
 import { StepPersonal } from "./step-personal";
 import { StepPackage } from "./step-package";
@@ -18,7 +17,7 @@ import { StepDocument } from "./step-payment";
 import { StepReview } from "./step-review";
 import { ProgressBar } from "./progress-bar";
 
-const STEP_LABELS = ["የግል መረጃ", "ጥቅል", "ተማሪ/ሠራተኛ", "ጊዜ", "ሰነድ", "ማረጋገጫ"];
+const STEP_LABELS = ["የግል መረጃ", "ተማሪ/ሠራተኛ", "ጥቅል", "ጊዜ", "ሰነድ", "ማረጋገጫ"];
 const TOTAL_STEPS = STEP_LABELS.length;
 
 const STORAGE_KEY = "byms_registration_draft";
@@ -40,7 +39,14 @@ export function RegistrationWizard({
   useEffect(() => {
     try {
       const saved = sessionStorage.getItem(STORAGE_KEY);
-      if (saved) setState({ ...INITIAL_WIZARD_STATE, ...JSON.parse(saved) });
+      if (saved) {
+        const draft = JSON.parse(saved);
+        setState({
+          ...INITIAL_WIZARD_STATE,
+          ...draft,
+          packageType: draft.packageType === "KRAR" ? "SPECIAL" : draft.packageType
+        });
+      }
     } catch {
       /* ignore */
     }
@@ -58,13 +64,6 @@ export function RegistrationWizard({
     setState((prev) => ({ ...prev, ...patch }));
   }, []);
 
-  const departmentRequired = useMemo(
-    () =>
-      state.applicantType === "STUDENT" &&
-      YEARS_REQUIRING_DEPARTMENT.has(state.studentYear as any),
-    [state.applicantType, state.studentYear]
-  );
-
   const isRegular = state.packageType === "REGULAR";
 
   function validateStep(current: number): boolean {
@@ -78,10 +77,6 @@ export function RegistrationWizard({
     }
 
     if (current === 2) {
-      if (!state.packageType) newErrors.packageType = "እባክዎ ጥቅል ይምረጡ / Please select a package.";
-    }
-
-    if (current === 3) {
       if (!state.applicantType) newErrors.applicantType = "እባክዎ ይምረጡ / Please select applicant type.";
       if (!state.christianName.trim()) newErrors.christianName = "እባክዎ የክርስትና ስም ያስገቡ።";
       if (!state.teseto.trim()) newErrors.teseto = "እባክዎ ተስጦ ያስገቡ።";
@@ -91,9 +86,18 @@ export function RegistrationWizard({
       }
       if (state.applicantType === "STUDENT") {
         if (!state.studentYear) newErrors.studentYear = "እባክዎ ዓመት ይምረጡ / Please select your year.";
-        if (departmentRequired && !state.department.trim()) {
-          newErrors.department = "እባክዎ የሚማሩት መሳርያ ይምረጡ / Please select your department.";
-        }
+      }
+      if (!state.department) newErrors.department = "እባክዎ የሚማሩት መሳርያ ይምረጡ / Please select an instrument.";
+    }
+
+    if (current === 3) {
+      if (!state.packageType) newErrors.packageType = "እባክዎ ጥቅል ይምረጡ / Please select a package.";
+      if (
+        state.packageType === "ONLINE_CLASS" &&
+        state.department === "ክራር" &&
+        !state.onlineLocation
+      ) {
+        newErrors.onlineLocation = "እባክዎ አካባቢዎን ይምረጡ / Please select your location.";
       }
     }
 
@@ -147,7 +151,8 @@ export function RegistrationWizard({
         packageType: state.packageType,
         applicantType: state.applicantType,
         studentYear: state.applicantType === "STUDENT" ? state.studentYear || null : null,
-        department: departmentRequired ? state.department.trim() : null,
+        department: state.department,
+        onlineLocation: state.onlineLocation || null,
         scheduleId: isRegular ? state.scheduleId : null,
         preferredTime: isRegular ? null : state.preferredTime.trim(),
         receiptFileId: state.receiptFileId,
@@ -206,13 +211,18 @@ export function RegistrationWizard({
             transition={{ duration: 0.25 }}
           >
             {step === 1 && <StepPersonal state={state} errors={errors} onChange={update} />}
-            {step === 2 && <StepPackage state={state} error={errors.packageType} onChange={update} />}
-            {step === 3 && (
+            {step === 2 && (
               <StepApplicantInfo
                 state={state}
                 errors={errors}
                 onChange={update}
-                departmentRequired={departmentRequired}
+              />
+            )}
+            {step === 3 && (
+              <StepPackage
+                state={state}
+                error={errors.packageType ?? errors.onlineLocation}
+                onChange={update}
               />
             )}
             {step === 4 &&
@@ -237,7 +247,6 @@ export function RegistrationWizard({
               <StepReview
                 state={state}
                 schedule={selectedSchedule}
-                departmentRequired={departmentRequired}
                 agreeError={errors.agreedToRegulations}
                 onAgreeChange={(agreed) => update({ agreedToRegulations: agreed })}
               />

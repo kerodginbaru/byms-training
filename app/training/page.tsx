@@ -2,7 +2,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getScheduleAvailability } from "@/lib/services/registration";
 import { formatDays, SESSION_LABELS, formatCurrencyETB } from "@/lib/utils/labels";
-import { PACKAGE_DESCRIPTIONS, PACKAGE_LABELS, PACKAGE_PRICES, TRAININGS_OFFERED } from "@/components/registration/types";
+import {
+  KRAR_PACKAGE_PRICES,
+  PACKAGE_DESCRIPTIONS,
+  PACKAGE_INTERNATIONAL_PRICES,
+  PACKAGE_LABELS,
+  PACKAGE_PRICES,
+  REGISTRATION_PACKAGE_OPTIONS,
+  TRAININGS_OFFERED
+} from "@/components/registration/types";
+import { formatCurrencyUSD } from "@/lib/utils/labels";
 
 export const metadata: Metadata = { title: "የስልጠና መርሃ ግብር" };
 export const dynamic = "force-dynamic";
@@ -25,16 +34,57 @@ export default async function TrainingPage() {
       {/* Packages */}
       <h2 className="amharic mt-10 text-xl font-bold text-ink-900">ጥቅሎች</h2>
       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {(Object.keys(PACKAGE_PRICES) as (keyof typeof PACKAGE_PRICES)[]).map((key) => (
+        {REGISTRATION_PACKAGE_OPTIONS.map((key) => (
           <div key={key} className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
             <p className="amharic font-semibold text-brand-700">{PACKAGE_LABELS[key]}</p>
             <p className="amharic mt-1 text-sm text-ink-900/60">{PACKAGE_DESCRIPTIONS[key]}</p>
-            <p className="amharic mt-3 text-sm font-medium text-ink-900">
-              ተማሪ፡ {formatCurrencyETB(PACKAGE_PRICES[key].student)}
-            </p>
-            <p className="amharic text-sm font-medium text-ink-900">
-              ሠራተኛ፡ {formatCurrencyETB(PACKAGE_PRICES[key].employee)}
-            </p>
+            {key === "ONLINE_CLASS" ? (
+              <>
+                <p className="amharic mt-3 text-sm font-medium text-ink-900">
+                  Ethiopia local: {formatCurrencyETB(PACKAGE_PRICES[key].student)}
+                </p>
+                <p className="amharic text-sm font-medium text-ink-900">
+                  Outside Ethiopia: {formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="amharic mt-3 text-sm font-medium text-ink-900">
+                  ተማሪ፡ {formatCurrencyETB(PACKAGE_PRICES[key].student)}
+                </p>
+                <p className="amharic text-sm font-medium text-ink-900">
+                  ሠራተኛ፡ {formatCurrencyETB(PACKAGE_PRICES[key].employee)}
+                </p>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <h2 className="amharic mt-10 text-xl font-bold text-ink-900">የክራር ስልጠና ዋጋዎች</h2>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {REGISTRATION_PACKAGE_OPTIONS.map((key) => (
+          <div key={key} className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
+            <p className="amharic font-semibold text-brand-700">{PACKAGE_LABELS[key]}</p>
+            {key === "ONLINE_CLASS" ? (
+              <>
+                <p className="amharic mt-3 text-sm font-medium text-ink-900">
+                  Ethiopia local: {formatCurrencyETB(KRAR_PACKAGE_PRICES.ONLINE_CLASS.student)}
+                </p>
+                <p className="amharic text-sm font-medium text-ink-900">
+                  Outside Ethiopia: {formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}
+                </p>
+              </>
+            ) : (
+              <>
+                <p className="amharic mt-3 text-sm font-medium text-ink-900">
+                  ተማሪ፡ {formatCurrencyETB(KRAR_PACKAGE_PRICES[key].student)}
+                </p>
+                <p className="amharic text-sm font-medium text-ink-900">
+                  ሠራተኛ፡ {formatCurrencyETB(KRAR_PACKAGE_PRICES[key].employee)}
+                </p>
+              </>
+            )}
           </div>
         ))}
       </div>

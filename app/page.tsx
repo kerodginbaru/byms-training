@@ -2,12 +2,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/db";
 import { getScheduleAvailability } from "@/lib/services/registration";
-import { formatDays, SESSION_LABELS, formatCurrencyETB } from "@/lib/utils/labels";
+import { formatDays, SESSION_LABELS, formatCurrencyETB, formatCurrencyUSD } from "@/lib/utils/labels";
 import { HeroEntrance } from "@/components/layout/hero-entrance";
 import {
   PACKAGE_DESCRIPTIONS,
+  KRAR_PACKAGE_PRICES,
   PACKAGE_LABELS,
   PACKAGE_PRICES,
+  PACKAGE_INTERNATIONAL_PRICES,
+  REGISTRATION_PACKAGE_OPTIONS,
   REGULATIONS_AM,
   TRAININGS_OFFERED
 } from "@/components/registration/types";
@@ -191,18 +194,41 @@ export default async function HomePage() {
             <p className="amharic font-semibold text-brand-700">{PACKAGE_LABELS.REGULAR}</p>
             <p className="amharic mt-1 text-sm text-ink-900/60">{PACKAGE_DESCRIPTIONS.REGULAR}</p>
           </div>
-          {(Object.keys(PACKAGE_PRICES) as (keyof typeof PACKAGE_PRICES)[]).map((key) => (
+          {REGISTRATION_PACKAGE_OPTIONS.filter((key) => key !== "REGULAR").map((key) => (
             <div key={key} className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm">
               <p className="amharic font-semibold text-brand-700">{PACKAGE_LABELS[key]}</p>
               <p className="amharic mt-1 text-sm text-ink-900/60">{PACKAGE_DESCRIPTIONS[key]}</p>
-              <p className="amharic mt-3 text-sm font-medium text-ink-900">
-                ተማሪ፡ {formatCurrencyETB(PACKAGE_PRICES[key].student)}
-              </p>
-              <p className="amharic text-sm font-medium text-ink-900">
-                ሠራተኛ፡ {formatCurrencyETB(PACKAGE_PRICES[key].employee)}
-              </p>
+              {key === "ONLINE_CLASS" ? (
+                <>
+                  <p className="amharic mt-3 text-sm font-medium text-ink-900">
+                    Ethiopia local: {formatCurrencyETB(PACKAGE_PRICES[key].student)}
+                  </p>
+                  <p className="amharic text-sm font-medium text-ink-900">
+                    Outside Ethiopia: {formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="amharic mt-3 text-sm font-medium text-ink-900">
+                    ተማሪ፡ {formatCurrencyETB(PACKAGE_PRICES[key].student)}
+                  </p>
+                  <p className="amharic text-sm font-medium text-ink-900">
+                    ሠራተኛ፡ {formatCurrencyETB(PACKAGE_PRICES[key].employee)}
+                  </p>
+                </>
+              )}
             </div>
           ))}
+        </div>
+        <div className="amharic mt-4 rounded-xl bg-brand-50 p-4 text-sm text-ink-900/70">
+          የክራር ጥቅሎች፡ መደበኛ {formatCurrencyETB(KRAR_PACKAGE_PRICES.REGULAR.student)} (ተማሪ) /
+          {" "}{formatCurrencyETB(KRAR_PACKAGE_PRICES.REGULAR.employee)} (ሠራተኛ)፤ ልዩ
+          {" "}{formatCurrencyETB(KRAR_PACKAGE_PRICES.SPECIAL.student)} /
+          {" "}{formatCurrencyETB(KRAR_PACKAGE_PRICES.SPECIAL.employee)}፤ ከቤት ወደ ቤት
+          {" "}{formatCurrencyETB(KRAR_PACKAGE_PRICES.HOME_TO_HOME.student)} /
+          {" "}{formatCurrencyETB(KRAR_PACKAGE_PRICES.HOME_TO_HOME.employee)}፤ ኦንላይን
+          {" "}{formatCurrencyETB(KRAR_PACKAGE_PRICES.ONLINE_CLASS.student)} በኢትዮጵያ እና
+          {" "}{formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)} ከኢትዮጵያ ውጭ።
         </div>
       </section>
 
