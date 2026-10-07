@@ -56,7 +56,6 @@ const baseRegistrationShape = {
   department: z.enum(["በገና", "ክራር", "መሰንቆ", "ከበሮ"], {
     errorMap: () => ({ message: "Please select an instrument." })
   }),
-  onlineLocation: z.enum(["LOCAL", "INTERNATIONAL"]).optional().nullable(),
   packageType: z.enum(["REGULAR", "SPECIAL", "HOME_TO_HOME", "KRAR", "ONLINE_CLASS"], {
     errorMap: () => ({ message: "Please select a package." })
   }),
@@ -92,22 +91,6 @@ export const registrationSchema = z
         code: z.ZodIssueCode.custom,
         message: "Year should not be set for employees.",
         path: ["studentYear"]
-      });
-    }
-
-    if (data.packageType === "ONLINE_CLASS" && data.department === "ክራር") {
-      if (!data.onlineLocation) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: "Please select whether you are in Ethiopia or abroad.",
-          path: ["onlineLocation"]
-        });
-      }
-    } else if (data.onlineLocation) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: "Online location is only used for Krar online classes.",
-        path: ["onlineLocation"]
       });
     }
 

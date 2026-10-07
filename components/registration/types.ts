@@ -1,6 +1,5 @@
 export type ApplicantType = "STUDENT" | "EMPLOYEE";
 export type PackageType = "REGULAR" | "SPECIAL" | "HOME_TO_HOME" | "KRAR" | "ONLINE_CLASS";
-export type OnlineLocation = "LOCAL" | "INTERNATIONAL";
 
 export type StudentYear =
   | "REMEDIAL"
@@ -44,7 +43,6 @@ export type WizardState = {
   applicantType: ApplicantType | "";
   studentYear: StudentYear | "";
   department: string;
-  onlineLocation: OnlineLocation | "";
   scheduleId: string;
   preferredTime: string;
   receiptFileId: string;
@@ -63,7 +61,6 @@ export const INITIAL_WIZARD_STATE: WizardState = {
   applicantType: "",
   studentYear: "",
   department: "",
-  onlineLocation: "",
   scheduleId: "",
   preferredTime: "",
   receiptFileId: "",
@@ -103,24 +100,27 @@ export const REGISTRATION_PACKAGE_OPTIONS: Exclude<PackageType, "KRAR">[] = [
 export function getPackagePrice(
   packageType: PackageType,
   department: string,
-  applicantType: ApplicantType,
-  onlineLocation: OnlineLocation | ""
+  applicantType: ApplicantType
 ) {
   const prices = department === "ክራር" && packageType !== "KRAR"
     ? KRAR_PACKAGE_PRICES[packageType]
     : PACKAGE_PRICES[packageType];
 
-  if (packageType === "ONLINE_CLASS" && department === "ክራር" && onlineLocation === "INTERNATIONAL") {
-    return { amount: PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS, currency: "USD" as const };
-  }
-  if (packageType === "ONLINE_CLASS" && department === "ክራር" && !onlineLocation) {
-    return null;
-  }
-
   return {
     amount: applicantType === "EMPLOYEE" ? prices.employee : prices.student,
     currency: "ETB" as const
   };
+}
+
+export function getPackagePrices(
+  packageType: PackageType,
+  department: string,
+  applicantType: ApplicantType
+) {
+  const primaryPrice = getPackagePrice(packageType, department, applicantType);
+  return packageType === "ONLINE_CLASS"
+    ? [primaryPrice, { amount: PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS, currency: "USD" as const }]
+    : [primaryPrice];
 }
 
 export const PACKAGE_LABELS: Record<PackageType, string> = {
@@ -136,7 +136,7 @@ export const PACKAGE_DESCRIPTIONS: Record<PackageType, string> = {
   SPECIAL: "ጊዜው በተማሪው ምርጫ የሚወሰን ልዩ ስልጠና",
   HOME_TO_HOME: "አስተማሪው ወደ ቤትዎ በመምጣት የሚሰጥ ስልጠና",
   KRAR: "ለክራር ትምህርት የተዘጋጀ ልዩ ጥቅል",
-  ONLINE_CLASS: "በኦንላይን የሚሰጥ ስልጠና፤ ክፍያው እንደ አካባቢዎ ይለያያል።"
+  ONLINE_CLASS: "በኦንላይን የሚሰጥ ስልጠና።"
 };
 
 export const REGULATIONS_AM = [

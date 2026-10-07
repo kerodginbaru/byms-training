@@ -3,6 +3,7 @@ import { normalizeEthiopianPhone } from "@/lib/validation/registration";
 import { registrationSchema } from "@/lib/validation/registration";
 import {
   getPackagePrice,
+  getPackagePrices,
   KRAR_PACKAGE_PRICES,
   PACKAGE_DESCRIPTIONS,
   PACKAGE_INTERNATIONAL_PRICES
@@ -22,9 +23,13 @@ describe("normalizeEthiopianPhone", () => {
 });
 
 describe("online-class international price", () => {
-  it("keeps the outside-Ethiopia online amount at $50", () => {
+  it("shows both currency price options without a location selection", () => {
     expect(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS).toBe(50);
-    expect(PACKAGE_DESCRIPTIONS.ONLINE_CLASS).toContain("እንደ አካባቢዎ");
+    expect(PACKAGE_DESCRIPTIONS.ONLINE_CLASS).not.toContain("አካባቢ");
+    expect(getPackagePrices("ONLINE_CLASS", "ክራር", "STUDENT")).toEqual([
+      { amount: 2000, currency: "ETB" },
+      { amount: 50, currency: "USD" }
+    ]);
   });
 });
 
@@ -36,13 +41,9 @@ describe("Krar package prices", () => {
     expect(KRAR_PACKAGE_PRICES.ONLINE_CLASS).toEqual({ student: 2000, employee: 2000 });
   });
 
-  it("returns the selected local or international online amount", () => {
-    expect(getPackagePrice("ONLINE_CLASS", "ክራር", "STUDENT", "LOCAL"))
+  it("returns the regular online amount for the primary option", () => {
+    expect(getPackagePrice("ONLINE_CLASS", "ክራር", "STUDENT"))
       .toEqual({ amount: 2000, currency: "ETB" });
-    expect(getPackagePrice("ONLINE_CLASS", "ክራር", "EMPLOYEE", "INTERNATIONAL"))
-      .toEqual({ amount: 50, currency: "USD" });
-    expect(getPackagePrice("ONLINE_CLASS", "ክራር", "STUDENT", ""))
-      .toBeNull();
   });
 });
 
@@ -88,7 +89,6 @@ describe("registrationSchema conditional logic", () => {
     confessorName: "Abba Yared",
     packageType: "REGULAR" as const,
     department: "በገና",
-    onlineLocation: null,
     scheduleId: "sched_1",
     preferredTime: null,
     receiptFileId: "file_1",
@@ -227,8 +227,8 @@ describe("registrationSchema conditional logic", () => {
     expect(result.success).toBe(true);
   });
 
-  it("requires a local or international selection for Krar online classes", () => {
-    const missingLocation = registrationSchema.safeParse({
+  it("accepts a Krar online class without a location selection", () => {
+    const result = registrationSchema.safeParse({
       ...base,
       applicantType: "STUDENT",
       studentYear: "YEAR_1",
@@ -237,18 +237,6 @@ describe("registrationSchema conditional logic", () => {
       scheduleId: null,
       preferredTime: "Saturday afternoon"
     });
-    expect(missingLocation.success).toBe(false);
-
-    const selectedLocation = registrationSchema.safeParse({
-      ...base,
-      applicantType: "EMPLOYEE",
-      studentYear: null,
-      department: "ክራር",
-      packageType: "ONLINE_CLASS",
-      onlineLocation: "INTERNATIONAL",
-      scheduleId: null,
-      preferredTime: "Saturday afternoon"
-    });
-    expect(selectedLocation.success).toBe(true);
+    expect(result.success).toBe(true);
   });
 });

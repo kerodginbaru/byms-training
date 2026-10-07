@@ -92,13 +92,6 @@ export function RegistrationWizard({
 
     if (current === 3) {
       if (!state.packageType) newErrors.packageType = "እባክዎ ጥቅል ይምረጡ / Please select a package.";
-      if (
-        state.packageType === "ONLINE_CLASS" &&
-        state.department === "ክራር" &&
-        !state.onlineLocation
-      ) {
-        newErrors.onlineLocation = "እባክዎ አካባቢዎን ይምረጡ / Please select your location.";
-      }
     }
 
     if (current === 4) {
@@ -152,7 +145,6 @@ export function RegistrationWizard({
         applicantType: state.applicantType,
         studentYear: state.applicantType === "STUDENT" ? state.studentYear || null : null,
         department: state.department,
-        onlineLocation: state.onlineLocation || null,
         scheduleId: isRegular ? state.scheduleId : null,
         preferredTime: isRegular ? null : state.preferredTime.trim(),
         receiptFileId: state.receiptFileId,
@@ -221,7 +213,7 @@ export function RegistrationWizard({
             {step === 3 && (
               <StepPackage
                 state={state}
-                error={errors.packageType ?? errors.onlineLocation}
+                error={errors.packageType}
                 onChange={update}
               />
             )}

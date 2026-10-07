@@ -201,10 +201,10 @@ export default async function HomePage() {
               {key === "ONLINE_CLASS" ? (
                 <>
                   <p className="amharic mt-3 text-sm font-medium text-ink-900">
-                    Ethiopia local: {formatCurrencyETB(PACKAGE_PRICES[key].student)}
+                    ETB option: {formatCurrencyETB(PACKAGE_PRICES[key].student)}
                   </p>
                   <p className="amharic text-sm font-medium text-ink-900">
-                    Outside Ethiopia: {formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}
+                    USD option: {formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}
                   </p>
                 </>
               ) : (
@@ -227,8 +227,8 @@ export default async function HomePage() {
           {" "}{formatCurrencyETB(KRAR_PACKAGE_PRICES.SPECIAL.employee)}፤ ከቤት ወደ ቤት
           {" "}{formatCurrencyETB(KRAR_PACKAGE_PRICES.HOME_TO_HOME.student)} /
           {" "}{formatCurrencyETB(KRAR_PACKAGE_PRICES.HOME_TO_HOME.employee)}፤ ኦንላይን
-          {" "}{formatCurrencyETB(KRAR_PACKAGE_PRICES.ONLINE_CLASS.student)} በኢትዮጵያ እና
-          {" "}{formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)} ከኢትዮጵያ ውጭ።
+          {" "}{formatCurrencyETB(KRAR_PACKAGE_PRICES.ONLINE_CLASS.student)} ወይም
+          {" "}{formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}።
         </div>
       </section>
 

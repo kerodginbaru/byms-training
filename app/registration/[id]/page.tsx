@@ -57,12 +57,6 @@ export default async function ConfirmationPage({ params }: { params: { id: strin
               <Row label="ዓመት" value={STUDENT_YEAR_LABELS[registration.studentYear]} />
             )}
             {registration.department && <Row label="የሚማሩት መሳርያ" value={registration.department} />}
-            {registration.onlineLocation && (
-              <Row
-                label="አካባቢ"
-                value={registration.onlineLocation === "LOCAL" ? "ኢትዮጵያ ውስጥ" : "ከኢትዮጵያ ውጭ"}
-              />
-            )}
             {registration.schedule ? (
               <>
                 <Row label="የስልጠና ጊዜ" value={registration.schedule.name} />

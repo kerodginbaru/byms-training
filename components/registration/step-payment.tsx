@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { formatCurrencyETB, formatCurrencyUSD } from "@/lib/utils/labels";
 import { PAYMENT_ACCOUNT } from "@/lib/utils/registration-grouping";
-import { getPackagePrice, WizardState } from "./types";
+import { getPackagePrices, WizardState } from "./types";
 
 export function StepDocument({
   state,
@@ -17,9 +17,9 @@ export function StepDocument({
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
-  const price = state.packageType && state.applicantType
-    ? getPackagePrice(state.packageType, state.department, state.applicantType, state.onlineLocation)
-    : null;
+  const prices = state.packageType && state.applicantType
+    ? getPackagePrices(state.packageType, state.department, state.applicantType)
+    : [];
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -53,13 +53,13 @@ export function StepDocument({
       <h2 className="amharic text-xl font-bold text-ink-900">የክፍያ ማረጋገጫ ያስገቡ</h2>
       <p className="amharic mt-1 text-sm text-ink-900/60">Upload proof of payment</p>
 
-      {price && (
+      {prices.length > 0 && (
         <div className="mt-4 rounded-xl bg-brand-50 p-4">
           <div className="flex justify-between text-sm">
             <span className="amharic">የመጀመሪያ ወር ክፍያ ({state.applicantType === "EMPLOYEE" ? "ሠራተኛ" : "ተማሪ"})</span>
-            <span className="font-semibold text-brand-700">
-              {price.currency === "USD" ? formatCurrencyUSD(price.amount) : formatCurrencyETB(price.amount)}
-            </span>
+            <span className="font-semibold text-brand-700">{prices.map((price) =>
+              price.currency === "USD" ? formatCurrencyUSD(price.amount) : formatCurrencyETB(price.amount)
+            ).join(" / ")}</span>
           </div>
         </div>
       )}

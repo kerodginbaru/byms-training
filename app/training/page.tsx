@@ -41,10 +41,10 @@ export default async function TrainingPage() {
             {key === "ONLINE_CLASS" ? (
               <>
                 <p className="amharic mt-3 text-sm font-medium text-ink-900">
-                  Ethiopia local: {formatCurrencyETB(PACKAGE_PRICES[key].student)}
+                ETB option: {formatCurrencyETB(PACKAGE_PRICES[key].student)}
                 </p>
                 <p className="amharic text-sm font-medium text-ink-900">
-                  Outside Ethiopia: {formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}
+                USD option: {formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}
                 </p>
               </>
             ) : (
@@ -69,10 +69,10 @@ export default async function TrainingPage() {
             {key === "ONLINE_CLASS" ? (
               <>
                 <p className="amharic mt-3 text-sm font-medium text-ink-900">
-                  Ethiopia local: {formatCurrencyETB(KRAR_PACKAGE_PRICES.ONLINE_CLASS.student)}
+                ETB option: {formatCurrencyETB(KRAR_PACKAGE_PRICES.ONLINE_CLASS.student)}
                 </p>
                 <p className="amharic text-sm font-medium text-ink-900">
-                  Outside Ethiopia: {formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}
+                USD option: {formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}
                 </p>
               </>
             ) : (

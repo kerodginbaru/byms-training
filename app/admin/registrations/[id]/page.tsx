@@ -145,12 +145,6 @@ export default async function RegistrationDetailPage({
               <dd>{registration.department}</dd>
             </>
           )}
-          {registration.onlineLocation && (
-            <>
-              <dt className="text-ink-900/50">Online Location</dt>
-              <dd>{registration.onlineLocation === "LOCAL" ? "Ethiopia" : "Outside Ethiopia"}</dd>
-            </>
-          )}
         </dl>
       </section>
 

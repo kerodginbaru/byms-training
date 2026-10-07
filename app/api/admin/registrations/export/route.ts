@@ -45,7 +45,6 @@ export async function GET(req: NextRequest) {
     "Year",
     "Instrument",
     "Package",
-    "Online Location",
     "Schedule",
     "Preferred Time",
     "Created At"
@@ -60,7 +59,6 @@ export async function GET(req: NextRequest) {
       r.studentYear ?? "",
       r.department ?? "",
       r.packageType,
-      r.onlineLocation ?? "",
       r.schedule?.name ?? "",
       r.preferredTime ?? "",
       r.createdAt.toISOString()

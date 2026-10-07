@@ -33,12 +33,7 @@ export function StepPackage({
             <button
               key={pkg}
               type="button"
-              onClick={() =>
-                onChange({
-                  packageType: pkg,
-                  onlineLocation: pkg === "ONLINE_CLASS" && isKrar ? state.onlineLocation : ""
-                })
-              }
+              onClick={() => onChange({ packageType: pkg })}
               className={`rounded-xl border-2 p-4 text-left transition ${
                 selected ? "border-brand-500 bg-brand-50" : "border-brand-100 hover:border-brand-300"
               }`}
@@ -48,10 +43,10 @@ export function StepPackage({
               {pkg === "ONLINE_CLASS" && (
                 <>
                   <p className="amharic mt-2 text-sm font-medium text-ink-900">
-                    Ethiopia local: {formatCurrencyETB(price.student)}
+                    ETB option: {formatCurrencyETB(price.student)}
                   </p>
                   <p className="amharic text-sm font-medium text-ink-900">
-                    Outside Ethiopia: {formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}
+                    USD option: {formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}
                   </p>
                 </>
               )}
@@ -64,32 +59,6 @@ export function StepPackage({
           );
         })}
       </div>
-
-      {isKrar && state.packageType === "ONLINE_CLASS" && (
-        <fieldset className="mt-5">
-          <legend className="amharic text-sm font-medium text-ink-900">የሚኖሩበትን አካባቢ ይምረጡ</legend>
-          <div className="mt-2 grid grid-cols-2 gap-3">
-            {([
-              ["LOCAL", `ኢትዮጵያ ውስጥ · ${formatCurrencyETB(KRAR_PACKAGE_PRICES.ONLINE_CLASS.student)}`],
-              ["INTERNATIONAL", `ከኢትዮጵያ ውጭ · ${formatCurrencyUSD(PACKAGE_INTERNATIONAL_PRICES.ONLINE_CLASS)}`]
-            ] as const).map(([location, label]) => (
-              <button
-                key={location}
-                type="button"
-                aria-pressed={state.onlineLocation === location}
-                onClick={() => onChange({ onlineLocation: location })}
-                className={`amharic rounded-xl border-2 px-3 py-3 text-sm transition ${
-                  state.onlineLocation === location
-                    ? "border-brand-500 bg-brand-50 text-brand-700"
-                    : "border-brand-100 text-ink-900/70 hover:border-brand-300"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </fieldset>
-      )}
 
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
     </div>

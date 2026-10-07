@@ -165,7 +165,7 @@ export function StepApplicantInfo({
           <select
             id="department"
             value={state.department}
-            onChange={(e) => onChange({ department: e.target.value, onlineLocation: "" })}
+            onChange={(e) => onChange({ department: e.target.value })}
             className="mt-1.5 w-full rounded-xl border border-brand-200 px-4 py-3 text-base focus:border-brand-500 focus:outline-none"
             aria-invalid={!!errors.department}
           >
