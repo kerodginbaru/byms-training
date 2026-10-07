@@ -134,6 +134,78 @@ export default async function AdminRegistrationsPage({
         </div>
       )}
 
+      {!selectedShift && (
+        <section className="mt-8">
+          <h2 className="mb-4 text-lg font-semibold text-ink-900">All registrations</h2>
+          {allRegistrations.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-brand-200 bg-brand-50 p-5 text-sm text-ink-900/60">
+              No registrations found. Try changing or clearing the filters.
+            </div>
+          ) : (
+            <>
+              <div className="hidden overflow-x-auto rounded-xl border border-brand-100 bg-white md:block">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-brand-50 text-xs uppercase text-ink-900/50">
+                    <tr>
+                      <th className="px-4 py-3">Reg. Number</th>
+                      <th className="px-4 py-3">Name</th>
+                      <th className="px-4 py-3">Phone</th>
+                      <th className="px-4 py-3">Type</th>
+                      <th className="px-4 py-3">Package</th>
+                      <th className="px-4 py-3">Created</th>
+                      <th className="px-4 py-3" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-brand-50">
+                    {allRegistrations.map((r) => (
+                      <tr key={r.id} className="hover:bg-brand-50/40">
+                        <td className="whitespace-nowrap px-4 py-3 font-mono text-xs">{r.registrationNumber}</td>
+                        <td className="px-4 py-3">{r.fullName}</td>
+                        <td className="px-4 py-3">{r.phone}</td>
+                        <td className="px-4 py-3">
+                          {r.applicantType === "STUDENT" ? `Student${r.studentYear ? " · " + STUDENT_YEAR_LABELS[r.studentYear] : ""}` : "Employee"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="inline-block rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium text-brand-700">
+                            {PACKAGE_LABELS[r.packageType]}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-3 text-ink-900/60">
+                          {new Intl.DateTimeFormat("en-GB", { dateStyle: "short" }).format(r.createdAt)}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Link href={`/admin/registrations/${r.id}`} className="font-medium text-brand-600 hover:underline">
+                            View
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="space-y-3 md:hidden">
+                {allRegistrations.map((r) => (
+                  <Link
+                    key={r.id}
+                    href={`/admin/registrations/${r.id}`}
+                    className="block rounded-xl border border-brand-100 bg-white p-4 shadow-sm"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-mono text-xs text-ink-900/50">{r.registrationNumber}</span>
+                      <span className="rounded-full bg-brand-100 px-2 py-1 text-xs font-medium text-brand-700">
+                        {PACKAGE_LABELS[r.packageType]}
+                      </span>
+                    </div>
+                    <p className="mt-1 font-medium text-ink-900">{r.fullName}</p>
+                    <p className="text-sm text-ink-900/60">{r.phone}</p>
+                  </Link>
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
       {selectedShift && (
         <div className="mt-6">
           <div className="mb-4 flex items-center justify-between gap-3">
