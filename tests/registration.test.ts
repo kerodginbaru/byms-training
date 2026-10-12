@@ -58,11 +58,38 @@ describe("shift grouping and payment info", () => {
     const grouped = groupRegistrationsByShift(registrations);
 
     expect(grouped).toHaveLength(2);
-    expect(grouped[0].id).toBe("shift-a");
+    expect(grouped[0].id).toBe(JSON.stringify(["shift-a", null]));
     expect(grouped[0].members).toHaveLength(2);
-    expect(grouped[1].id).toBe("shift-b");
+    expect(grouped[1].id).toBe(JSON.stringify(["shift-b", null]));
     expect(PAYMENT_ACCOUNT.accountNumber).toBe("1000138335438");
     expect(PAYMENT_ACCOUNT.accountName).toBe("Ashenafi Metaferia");
+  });
+
+  it("keeps different instruments in separate groups for the same shift", () => {
+    const registrations = [
+      {
+        id: "1",
+        fullName: "Alice",
+        department: "በገና",
+        scheduleId: "shift-a",
+        preferredTime: null,
+        schedule: { id: "shift-a", name: "Shift A" }
+      },
+      {
+        id: "2",
+        fullName: "Bob",
+        department: "ክራር",
+        scheduleId: "shift-a",
+        preferredTime: null,
+        schedule: { id: "shift-a", name: "Shift A" }
+      }
+    ] as any[];
+
+    const grouped = groupRegistrationsByShift(registrations);
+
+    expect(grouped).toHaveLength(2);
+    expect(grouped.map((group) => group.department)).toEqual(["በገና", "ክራር"]);
+    expect(grouped.map((group) => group.members)).toEqual([[registrations[0]], [registrations[1]]]);
   });
 
   it("includes special-package student registrations in the shift summary totals", () => {

@@ -3,7 +3,7 @@ import { requirePermission } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 import { STUDENT_YEAR_LABELS } from "@/lib/utils/labels";
-import { PACKAGE_LABELS } from "@/components/registration/types";
+import { PACKAGE_LABELS, TRAININGS_OFFERED } from "@/components/registration/types";
 import { groupRegistrationsByShift } from "@/lib/utils/registration-grouping";
 
 export const dynamic = "force-dynamic";
@@ -50,6 +50,15 @@ export default async function AdminRegistrationsPage({
   ]);
 
   const shiftGroups = groupRegistrationsByShift(allRegistrations);
+  const registrationsByInstrument = new Map(TRAININGS_OFFERED.map((instrument) => [instrument, 0]));
+  for (const registration of allRegistrations) {
+    if (registration.department) {
+      registrationsByInstrument.set(
+        registration.department,
+        (registrationsByInstrument.get(registration.department) ?? 0) + 1
+      );
+    }
+  }
   const selectedShiftId = searchParams.shiftId ?? "";
   const selectedShift = shiftGroups.find((group) => group.id === selectedShiftId) ?? null;
   const visibleRegistrations = selectedShift ? selectedShift.members : allRegistrations;
@@ -106,6 +115,18 @@ export default async function AdminRegistrationsPage({
         </button>
       </form>
 
+      <section className="mt-6">
+        <h2 className="mb-3 text-lg font-semibold text-ink-900">Registrations by instrument</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {Array.from(registrationsByInstrument.entries()).map(([instrument, count]) => (
+            <div key={instrument} className="rounded-xl border border-brand-100 bg-white px-4 py-3">
+              <p className="text-sm text-ink-900/60">{instrument}</p>
+              <p className="text-2xl font-bold text-brand-700">{count}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {!selectedShift && (
         <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {shiftGroups.map((group) => (
@@ -117,7 +138,9 @@ export default async function AdminRegistrationsPage({
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-ink-900/50">Shift</p>
-                  <h2 className="mt-1 text-lg font-bold text-ink-900">{group.name}</h2>
+                  <h2 className="mt-1 text-lg font-bold text-ink-900">
+                    {group.department ?? "Unspecified instrument"} · {group.name}
+                  </h2>
                 </div>
                 <span className="rounded-full bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-700">
                   {group.members.length}
@@ -211,7 +234,9 @@ export default async function AdminRegistrationsPage({
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
               <p className="text-xs uppercase tracking-wide text-ink-900/50">Selected shift</p>
-              <h2 className="text-xl font-bold text-ink-900">{selectedShift.name}</h2>
+              <h2 className="text-xl font-bold text-ink-900">
+                {selectedShift.department ?? "Unspecified instrument"} · {selectedShift.name}
+              </h2>
             </div>
             <Link href={buildQuery({ shiftId: undefined, page: undefined })} className="rounded-lg border border-brand-200 px-3 py-1.5 text-sm font-medium text-brand-700">
               Back to all shifts

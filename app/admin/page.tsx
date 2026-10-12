@@ -1,6 +1,7 @@
 import { requirePermission } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 import { SESSION_LABELS, formatDays } from "@/lib/utils/labels";
+import { TRAININGS_OFFERED } from "@/components/registration/types";
 
 export const dynamic = "force-dynamic";
 
@@ -19,50 +20,80 @@ export default async function AdminDashboardPage() {
         scheduleId: true,
         packageType: true,
         preferredTime: true,
-        fullName: true
+        department: true
       }
     })
   ]);
 
-  const countBySchedule = new Map<string, number>();
-  const preferredTimeCounts = new Map<string, number>();
+  const countByScheduleAndDepartment = new Map<string, number>();
+  const preferredTimeCounts = new Map<string, {
+    department: string | null;
+    preferredTime: string;
+    count: number;
+  }>();
 
   for (const registration of studentRegistrations) {
+    const department = registration.department ?? null;
     if (registration.scheduleId) {
-      countBySchedule.set(registration.scheduleId, (countBySchedule.get(registration.scheduleId) ?? 0) + 1);
+      const key = JSON.stringify([registration.scheduleId, department]);
+      countByScheduleAndDepartment.set(key, (countByScheduleAndDepartment.get(key) ?? 0) + 1);
       continue;
     }
 
     if (registration.packageType !== "REGULAR" && registration.preferredTime) {
       const key = registration.preferredTime.trim();
-      preferredTimeCounts.set(key, (preferredTimeCounts.get(key) ?? 0) + 1);
+      const groupedKey = JSON.stringify([key, department]);
+      const current = preferredTimeCounts.get(groupedKey);
+      preferredTimeCounts.set(groupedKey, {
+        department,
+        preferredTime: key,
+        count: (current?.count ?? 0) + 1
+      });
     }
   }
 
-  const regularShiftCards = schedules.map((schedule) => ({
-    id: schedule.id,
-    name: schedule.name,
-    session: schedule.session,
-    startTime: schedule.startTime,
-    endTime: schedule.endTime,
-    days: schedule.days,
-    studentCount: countBySchedule.get(schedule.id) ?? 0,
-    kind: "schedule"
-  }));
+  const shiftDepartments = Array.from(new Set(
+    studentRegistrations.map((registration) => registration.department ?? "Unspecified instrument")
+  ));
+  if (shiftDepartments.length === 0) shiftDepartments.push(...TRAININGS_OFFERED);
+  const departments = Array.from(new Set([
+    ...TRAININGS_OFFERED,
+    ...shiftDepartments
+  ]));
+  const regularShiftCards = schedules.flatMap((schedule) =>
+    shiftDepartments.map((department) => ({
+      id: `${schedule.id}-${department}`,
+      name: schedule.name,
+      department,
+      session: schedule.session,
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
+      days: schedule.days,
+      studentCount: countByScheduleAndDepartment.get(JSON.stringify([
+        schedule.id,
+        department === "Unspecified instrument" ? null : department
+      ])) ?? 0
+    }))
+  );
 
-  const specialShiftCards = Array.from(preferredTimeCounts.entries()).map(([preferredTime, studentCount]) => ({
-    id: `preferred-${preferredTime}`,
-    name: `Special / ${preferredTime}`,
+  const specialShiftCards = Array.from(preferredTimeCounts.values()).map((value) => ({
+    id: `preferred-${value.department ?? "unknown"}-${value.preferredTime}`,
+    name: `Special / ${value.preferredTime}`,
+    department: value.department ?? "Unspecified instrument",
     session: null,
     startTime: null,
     endTime: null,
     days: [],
-    studentCount,
-    kind: "preferred-time"
+    studentCount: value.count
   }));
 
   const allShiftCards = [...regularShiftCards, ...specialShiftCards].sort((a, b) => a.name.localeCompare(b.name));
-  const totalStudents = allShiftCards.reduce((sum, shift) => sum + shift.studentCount, 0);
+  const totalStudents = studentRegistrations.length;
+  const instrumentTotals = studentRegistrations.reduce((totals, registration) => {
+    const department = registration.department ?? "Unspecified instrument";
+    totals.set(department, (totals.get(department) ?? 0) + 1);
+    return totals;
+  }, new Map<string, number>(TRAININGS_OFFERED.map((department) => [department, 0])));
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -77,6 +108,18 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
+      <section>
+        <h2 className="mb-3 text-lg font-semibold text-ink-900">Students by instrument</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {departments.map((department) => (
+            <div key={department} className="rounded-xl border border-brand-100 bg-white px-4 py-3">
+              <p className="text-sm text-ink-900/60">{department}</p>
+              <p className="text-2xl font-bold text-brand-700">{instrumentTotals.get(department) ?? 0}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <div className="space-y-6">
         <section>
           <h2 className="mb-4 text-lg font-semibold text-ink-900">Regular shifts</h2>
@@ -86,7 +129,9 @@ export default async function AdminDashboardPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs uppercase tracking-wide text-ink-900/50">Shift</p>
-                    <h3 className="mt-1 text-xl font-bold text-ink-900">{shift.name}</h3>
+                    <h3 className="mt-1 text-xl font-bold text-ink-900">
+                      {shift.department} · {shift.name}
+                    </h3>
                   </div>
                   <span className="rounded-full bg-brand-100 px-2.5 py-1 text-sm font-semibold text-brand-700">
                     {shift.studentCount}
@@ -116,7 +161,7 @@ export default async function AdminDashboardPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-xs uppercase tracking-wide text-ink-900/50">Special package</p>
-                      <h3 className="mt-1 text-xl font-bold text-ink-900">{shift.name}</h3>
+                      <h3 className="mt-1 text-xl font-bold text-ink-900">{shift.department} · {shift.name}</h3>
                     </div>
                     <span className="rounded-full bg-amber-100 px-2.5 py-1 text-sm font-semibold text-amber-700">
                       {shift.studentCount}
