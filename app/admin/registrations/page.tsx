@@ -8,8 +8,6 @@ import { groupRegistrationsByShift } from "@/lib/utils/registration-grouping";
 
 export const dynamic = "force-dynamic";
 
-const PAGE_SIZE = 20;
-
 export default async function AdminRegistrationsPage({
   searchParams
 }: {
@@ -18,13 +16,12 @@ export default async function AdminRegistrationsPage({
     type?: string;
     packageType?: string;
     scheduleId?: string;
+    instrument?: string;
     shiftId?: string;
     page?: string;
   };
 }) {
   await requirePermission("registrations:read");
-
-  const page = Math.max(1, Number(searchParams.page ?? "1") || 1);
 
   const where: Prisma.RegistrationWhereInput = {};
 
@@ -38,20 +35,27 @@ export default async function AdminRegistrationsPage({
   if (searchParams.type) where.applicantType = searchParams.type as any;
   if (searchParams.packageType) where.packageType = searchParams.packageType as any;
   if (searchParams.scheduleId) where.scheduleId = searchParams.scheduleId;
+  const selectedInstrument = TRAININGS_OFFERED.includes(searchParams.instrument ?? "")
+    ? searchParams.instrument!
+    : undefined;
+  if (selectedInstrument) where.department = selectedInstrument;
 
-  const [allRegistrations, total, schedules] = await Promise.all([
+  const [allRegistrations, instrumentRegistrations] = await Promise.all([
     prisma.registration.findMany({
       where,
       include: { schedule: true },
       orderBy: { createdAt: "desc" }
     }),
-    prisma.registration.count({ where }),
-    prisma.schedule.findMany()
+    selectedInstrument
+      ? Promise.resolve(null)
+      : prisma.registration.findMany({
+          select: { department: true }
+        })
   ]);
 
   const shiftGroups = groupRegistrationsByShift(allRegistrations);
   const registrationsByInstrument = new Map(TRAININGS_OFFERED.map((instrument) => [instrument, 0]));
-  for (const registration of allRegistrations) {
+  for (const registration of instrumentRegistrations ?? []) {
     if (registration.department) {
       registrationsByInstrument.set(
         registration.department,
@@ -62,8 +66,6 @@ export default async function AdminRegistrationsPage({
   const selectedShiftId = searchParams.shiftId ?? "";
   const selectedShift = shiftGroups.find((group) => group.id === selectedShiftId) ?? null;
   const visibleRegistrations = selectedShift ? selectedShift.members : allRegistrations;
-
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   function buildQuery(patch: Record<string, string | undefined>) {
     const p = new URLSearchParams();
@@ -78,159 +80,88 @@ export default async function AdminRegistrationsPage({
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-ink-900">Registrations</h1>
-        
-         <a href={`/api/admin/registrations/export${buildQuery({ page: undefined })}`}
-          className="rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
-        >
-          Export CSV
-        </a>
+        {selectedInstrument && (
+          <a href={`/api/admin/registrations/export${buildQuery({ page: undefined })}`}
+            className="rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
+          >
+            Export CSV
+          </a>
+        )}
       </div>
 
-      <form className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5" method="get">
-        <input
-          name="q"
-          defaultValue={searchParams.q}
-          placeholder="Search name / phone / number"
-          className="col-span-2 rounded-lg border border-brand-200 px-3 py-2 text-sm lg:col-span-2"
-        />
-        <select name="type" defaultValue={searchParams.type ?? ""} className="rounded-lg border border-brand-200 px-3 py-2 text-sm">
-          <option value="">All types</option>
-          <option value="STUDENT">Student</option>
-          <option value="EMPLOYEE">Employee</option>
-        </select>
-        <select name="packageType" defaultValue={searchParams.packageType ?? ""} className="rounded-lg border border-brand-200 px-3 py-2 text-sm">
-          <option value="">All packages</option>
-          {Object.entries(PACKAGE_LABELS).map(([k, v]) => (
-            <option key={k} value={k}>{v}</option>
-          ))}
-        </select>
-        <select name="scheduleId" defaultValue={searchParams.scheduleId ?? ""} className="rounded-lg border border-brand-200 px-3 py-2 text-sm">
-          <option value="">All schedules</option>
-          {schedules.map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </select>
-        <button type="submit" className="rounded-lg bg-ink-900 px-3 py-2 text-sm font-medium text-white">
-          Filter
-        </button>
-      </form>
+      {!selectedInstrument && (
+        <section className="mt-6">
+          <h2 className="mb-3 text-lg font-semibold text-ink-900">Total registrations by instrument</h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {TRAININGS_OFFERED.filter((instrument) => instrument === "በገና" || instrument === "ክራር").map((instrument) => (
+              <Link
+                key={instrument}
+                href={buildQuery({ instrument, shiftId: undefined, page: undefined })}
+                className="rounded-2xl border border-brand-100 bg-white p-6 shadow-sm transition hover:border-brand-300 hover:shadow-md"
+              >
+                <p className="text-lg font-semibold text-ink-900">{instrument}</p>
+                <p className="mt-2 text-3xl font-bold text-brand-700">{registrationsByInstrument.get(instrument) ?? 0}</p>
+                <p className="mt-1 text-sm text-ink-900/60">View shifts</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
-      <section className="mt-6">
-        <h2 className="mb-3 text-lg font-semibold text-ink-900">Registrations by instrument</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from(registrationsByInstrument.entries()).map(([instrument, count]) => (
-            <div key={instrument} className="rounded-xl border border-brand-100 bg-white px-4 py-3">
-              <p className="text-sm text-ink-900/60">{instrument}</p>
-              <p className="text-2xl font-bold text-brand-700">{count}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {!selectedShift && (
-        <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {shiftGroups.map((group) => (
-            <Link
-              key={group.id}
-              href={buildQuery({ shiftId: group.id, page: undefined })}
-              className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm transition hover:border-brand-300 hover:shadow-md"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-ink-900/50">Shift</p>
-                  <h2 className="mt-1 text-lg font-bold text-ink-900">
-                    {group.days?.length ? formatDays(group.days) : group.name}
-                    {group.session ? ` · ${SESSION_LABELS[group.session] ?? group.session}` : ""}
-                    {" · "}{group.instrument ?? "Unspecified instrument"}
-                  </h2>
-                </div>
-                <span className="rounded-full bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-700">
-                  {group.members.length}
-                </span>
-              </div>
-              {group.startTime && group.endTime && (
-                <p className="mt-2 text-sm text-ink-900/60">
-                  {group.startTime}–{group.endTime}
-                </p>
-              )}
-            </Link>
-          ))}
+      {selectedInstrument && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-xl font-bold text-ink-900">
+            {selectedInstrument}{selectedShift ? ` · ${selectedShift.days?.length ? formatDays(selectedShift.days) : selectedShift.name}` : " shifts"}
+          </h2>
+          <Link
+            href={buildQuery({ instrument: undefined, shiftId: undefined, page: undefined })}
+            className="rounded-lg border border-brand-200 px-3 py-1.5 text-sm font-medium text-brand-700"
+          >
+            {selectedShift ? "Back to shifts" : "Back to instrument totals"}
+          </Link>
         </div>
       )}
 
-      {!selectedShift && (
-        <section className="mt-8">
-          <h2 className="mb-4 text-lg font-semibold text-ink-900">All registrations</h2>
-          {allRegistrations.length === 0 ? (
+      {selectedInstrument && !selectedShift && (
+        <section className="mt-6">
+          {shiftGroups.length === 0 ? (
             <div className="rounded-xl border border-dashed border-brand-200 bg-brand-50 p-5 text-sm text-ink-900/60">
-              No registrations found. Try changing or clearing the filters.
+              No shifts or registrations for this instrument yet.
             </div>
           ) : (
-            <>
-              <div className="hidden overflow-x-auto rounded-xl border border-brand-100 bg-white md:block">
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-brand-50 text-xs uppercase text-ink-900/50">
-                    <tr>
-                      <th className="px-4 py-3">Reg. Number</th>
-                      <th className="px-4 py-3">Name</th>
-                      <th className="px-4 py-3">Phone</th>
-                      <th className="px-4 py-3">Type</th>
-                      <th className="px-4 py-3">Package</th>
-                      <th className="px-4 py-3">Created</th>
-                      <th className="px-4 py-3" />
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-brand-50">
-                    {allRegistrations.map((r) => (
-                      <tr key={r.id} className="hover:bg-brand-50/40">
-                        <td className="whitespace-nowrap px-4 py-3 font-mono text-xs">{r.registrationNumber}</td>
-                        <td className="px-4 py-3">{r.fullName}</td>
-                        <td className="px-4 py-3">{r.phone}</td>
-                        <td className="px-4 py-3">
-                          {r.applicantType === "STUDENT" ? `Student${r.studentYear ? " · " + STUDENT_YEAR_LABELS[r.studentYear] : ""}` : "Employee"}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="inline-block rounded-full bg-brand-100 px-2.5 py-1 text-xs font-medium text-brand-700">
-                            {PACKAGE_LABELS[r.packageType]}
-                          </span>
-                        </td>
-                        <td className="whitespace-nowrap px-4 py-3 text-ink-900/60">
-                          {new Intl.DateTimeFormat("en-GB", { dateStyle: "short" }).format(r.createdAt)}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Link href={`/admin/registrations/${r.id}`} className="font-medium text-brand-600 hover:underline">
-                            View
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <div className="space-y-3 md:hidden">
-                {allRegistrations.map((r) => (
-                  <Link
-                    key={r.id}
-                    href={`/admin/registrations/${r.id}`}
-                    className="block rounded-xl border border-brand-100 bg-white p-4 shadow-sm"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="font-mono text-xs text-ink-900/50">{r.registrationNumber}</span>
-                      <span className="rounded-full bg-brand-100 px-2 py-1 text-xs font-medium text-brand-700">
-                        {PACKAGE_LABELS[r.packageType]}
-                      </span>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {shiftGroups.map((group) => (
+                <Link
+                  key={group.id}
+                  href={buildQuery({ instrument: selectedInstrument, shiftId: group.id, page: undefined })}
+                  className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm transition hover:border-brand-300 hover:shadow-md"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-wide text-ink-900/50">Shift</p>
+                      <h2 className="mt-1 text-lg font-bold text-ink-900">
+                        {group.days?.length ? formatDays(group.days) : group.name}
+                        {group.session ? ` · ${SESSION_LABELS[group.session] ?? group.session}` : ""}
+                        {group.instrument ? ` · ${group.instrument}` : ""}
+                      </h2>
                     </div>
-                    <p className="mt-1 font-medium text-ink-900">{r.fullName}</p>
-                    <p className="text-sm text-ink-900/60">{r.phone}</p>
-                  </Link>
-                ))}
-              </div>
-            </>
+                    <span className="rounded-full bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-700">
+                      {group.members.length}
+                    </span>
+                  </div>
+                  {group.startTime && group.endTime && (
+                    <p className="mt-2 text-sm text-ink-900/60">
+                      {group.startTime}–{group.endTime}
+                    </p>
+                  )}
+                </Link>
+              ))}
+            </div>
           )}
         </section>
       )}
 
-      {selectedShift && (
+      {selectedInstrument && selectedShift && (
         <div className="mt-6">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
@@ -238,7 +169,7 @@ export default async function AdminRegistrationsPage({
               <h2 className="text-xl font-bold text-ink-900">
                 {selectedShift.days?.length ? formatDays(selectedShift.days) : selectedShift.name}
                 {selectedShift.session ? ` · ${SESSION_LABELS[selectedShift.session] ?? selectedShift.session}` : ""}
-                {" · "}{selectedShift.instrument ?? "Unspecified instrument"}
+                {selectedShift.instrument ? ` · ${selectedShift.instrument}` : ""}
               </h2>
             </div>
             <Link href={buildQuery({ shiftId: undefined, page: undefined })} className="rounded-lg border border-brand-200 px-3 py-1.5 text-sm font-medium text-brand-700">
@@ -308,7 +239,7 @@ export default async function AdminRegistrationsPage({
         </div>
       )}
 
-      {selectedShift && (
+      {selectedInstrument && selectedShift && (
         <div className="mt-4 text-sm text-ink-900/60">
           {selectedShift.members.length} registered participant{selectedShift.members.length === 1 ? "" : "s"}
         </div>
