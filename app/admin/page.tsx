@@ -61,17 +61,17 @@ export default async function AdminDashboardPage() {
     ...shiftDepartments
   ]));
   const regularShiftCards = schedules.flatMap((schedule) =>
-    shiftDepartments.map((department) => ({
-      id: `${schedule.id}-${department}`,
+    shiftDepartments.map((instrument) => ({
+      id: `${schedule.id}-${instrument}`,
       name: schedule.name,
-      department,
+      instrument,
       session: schedule.session,
       startTime: schedule.startTime,
       endTime: schedule.endTime,
       days: schedule.days,
       studentCount: countByScheduleAndDepartment.get(JSON.stringify([
         schedule.id,
-        department === "Unspecified instrument" ? null : department
+        instrument === "Unspecified instrument" ? null : instrument
       ])) ?? 0
     }))
   );
@@ -79,7 +79,7 @@ export default async function AdminDashboardPage() {
   const specialShiftCards = Array.from(preferredTimeCounts.values()).map((value) => ({
     id: `preferred-${value.department ?? "unknown"}-${value.preferredTime}`,
     name: `Special / ${value.preferredTime}`,
-    department: value.department ?? "Unspecified instrument",
+    instrument: value.department ?? "Unspecified instrument",
     session: null,
     startTime: null,
     endTime: null,
@@ -130,7 +130,7 @@ export default async function AdminDashboardPage() {
                   <div>
                     <p className="text-xs uppercase tracking-wide text-ink-900/50">Shift</p>
                     <h3 className="mt-1 text-xl font-bold text-ink-900">
-                      {shift.department} · {shift.name}
+                      {formatDays(shift.days)} · {SESSION_LABELS[shift.session]} · {shift.instrument}
                     </h3>
                   </div>
                   <span className="rounded-full bg-brand-100 px-2.5 py-1 text-sm font-semibold text-brand-700">
@@ -161,7 +161,7 @@ export default async function AdminDashboardPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-xs uppercase tracking-wide text-ink-900/50">Special package</p>
-                      <h3 className="mt-1 text-xl font-bold text-ink-900">{shift.department} · {shift.name}</h3>
+                      <h3 className="mt-1 text-xl font-bold text-ink-900">{shift.name} · {shift.instrument}</h3>
                     </div>
                     <span className="rounded-full bg-amber-100 px-2.5 py-1 text-sm font-semibold text-amber-700">
                       {shift.studentCount}

@@ -22,6 +22,7 @@ export type RegistrationGroupMember = {
   schedule?: {
     id?: string;
     name?: string | null;
+    days?: string[];
     session?: string | null;
     startTime?: string | null;
     endTime?: string | null;
@@ -31,7 +32,8 @@ export type RegistrationGroupMember = {
 export type ShiftGroup = {
   id: string;
   name: string;
-  department?: string | null;
+  days?: string[];
+  instrument?: string | null;
   session?: string | null;
   startTime?: string | null;
   endTime?: string | null;
@@ -45,13 +47,14 @@ export function groupRegistrationsByShift(registrations: RegistrationGroupMember
     const schedule = registration.schedule;
     const shiftId = schedule?.id ?? registration.scheduleId ?? registration.preferredTime ?? `preferred-${registration.id}`;
     const shiftName = schedule?.name ?? (registration.preferredTime ? `Preferred time: ${registration.preferredTime}` : "Unassigned");
-    const department = registration.department ?? null;
-    const groupId = JSON.stringify([shiftId, department]);
+    const instrument = registration.department ?? null;
+    const groupId = JSON.stringify([shiftId, instrument]);
 
     const existing = groups.get(groupId) ?? {
       id: groupId,
       name: shiftName,
-      department,
+      days: schedule?.days ?? [],
+      instrument,
       session: schedule?.session ?? null,
       startTime: schedule?.startTime ?? null,
       endTime: schedule?.endTime ?? null,
@@ -63,6 +66,6 @@ export function groupRegistrationsByShift(registrations: RegistrationGroupMember
   }
 
   return Array.from(groups.values()).sort((a, b) =>
-    (a.department ?? "").localeCompare(b.department ?? "") || a.name.localeCompare(b.name)
+    (a.instrument ?? "").localeCompare(b.instrument ?? "") || a.name.localeCompare(b.name)
   );
 }

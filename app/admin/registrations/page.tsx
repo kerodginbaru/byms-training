@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requirePermission } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 import { Prisma } from "@prisma/client";
-import { STUDENT_YEAR_LABELS } from "@/lib/utils/labels";
+import { SESSION_LABELS, STUDENT_YEAR_LABELS, formatDays } from "@/lib/utils/labels";
 import { PACKAGE_LABELS, TRAININGS_OFFERED } from "@/components/registration/types";
 import { groupRegistrationsByShift } from "@/lib/utils/registration-grouping";
 
@@ -139,17 +139,18 @@ export default async function AdminRegistrationsPage({
                 <div>
                   <p className="text-xs uppercase tracking-wide text-ink-900/50">Shift</p>
                   <h2 className="mt-1 text-lg font-bold text-ink-900">
-                    {group.department ?? "Unspecified instrument"} · {group.name}
+                    {group.days?.length ? formatDays(group.days) : group.name}
+                    {group.session ? ` · ${SESSION_LABELS[group.session] ?? group.session}` : ""}
+                    {" · "}{group.instrument ?? "Unspecified instrument"}
                   </h2>
                 </div>
                 <span className="rounded-full bg-brand-100 px-2.5 py-1 text-xs font-semibold text-brand-700">
                   {group.members.length}
                 </span>
               </div>
-              {group.session && (
+              {group.startTime && group.endTime && (
                 <p className="mt-2 text-sm text-ink-900/60">
-                  {group.session === "MORNING" ? "Morning" : "Afternoon"}
-                  {group.startTime && group.endTime ? ` · ${group.startTime}–${group.endTime}` : ""}
+                  {group.startTime}–{group.endTime}
                 </p>
               )}
             </Link>
@@ -235,7 +236,9 @@ export default async function AdminRegistrationsPage({
             <div>
               <p className="text-xs uppercase tracking-wide text-ink-900/50">Selected shift</p>
               <h2 className="text-xl font-bold text-ink-900">
-                {selectedShift.department ?? "Unspecified instrument"} · {selectedShift.name}
+                {selectedShift.days?.length ? formatDays(selectedShift.days) : selectedShift.name}
+                {selectedShift.session ? ` · ${SESSION_LABELS[selectedShift.session] ?? selectedShift.session}` : ""}
+                {" · "}{selectedShift.instrument ?? "Unspecified instrument"}
               </h2>
             </div>
             <Link href={buildQuery({ shiftId: undefined, page: undefined })} className="rounded-lg border border-brand-200 px-3 py-1.5 text-sm font-medium text-brand-700">
