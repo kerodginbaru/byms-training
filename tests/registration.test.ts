@@ -143,14 +143,22 @@ describe("registrationSchema conditional logic", () => {
     expect(result.success).toBe(true);
   });
 
-  it("accepts an instrument for Year 1", () => {
+  it("rejects instruments that are temporarily unavailable for public registration", () => {
     const result = registrationSchema.safeParse({
       ...base,
       applicantType: "STUDENT",
       studentYear: "YEAR_1",
       department: "መሰንቆ"
     });
-    expect(result.success).toBe(true);
+    expect(result.success).toBe(false);
+
+    const keberoResult = registrationSchema.safeParse({
+      ...base,
+      applicantType: "STUDENT",
+      studentYear: "YEAR_1",
+      department: "ከበሮ"
+    });
+    expect(keberoResult.success).toBe(false);
   });
 
   it("rejects employee with studentYear set", () => {

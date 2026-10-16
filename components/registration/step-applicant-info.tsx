@@ -1,9 +1,9 @@
 import { STUDENT_YEAR_LABELS } from "@/lib/utils/labels";
 import {
   CONFESSOR_PARISH_LABELS,
+  PUBLIC_REGISTRATION_INSTRUMENTS,
   ConfessorParish,
   StudentYear,
-  TRAININGS_OFFERED,
   WizardState
 } from "./types";
 
@@ -170,7 +170,7 @@ export function StepApplicantInfo({
             aria-invalid={!!errors.department}
           >
             <option value="">ይምረጡ</option>
-            {TRAININGS_OFFERED.map((instrument) => (
+            {PUBLIC_REGISTRATION_INSTRUMENTS.map((instrument) => (
               <option key={instrument} value={instrument}>{instrument}</option>
             ))}
           </select>

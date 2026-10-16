@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   INITIAL_WIZARD_STATE,
+  PUBLIC_REGISTRATION_INSTRUMENTS,
   ScheduleOption,
   WizardState
 } from "./types";
@@ -44,7 +45,8 @@ export function RegistrationWizard({
         setState({
           ...INITIAL_WIZARD_STATE,
           ...draft,
-          packageType: draft.packageType === "KRAR" ? "SPECIAL" : draft.packageType
+          packageType: draft.packageType === "KRAR" ? "SPECIAL" : draft.packageType,
+          department: PUBLIC_REGISTRATION_INSTRUMENTS.find((instrument) => instrument === draft.department) ?? ""
         });
       }
     } catch {

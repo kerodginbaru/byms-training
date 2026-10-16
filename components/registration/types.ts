@@ -148,4 +148,5 @@ export const REGULATIONS_AM = [
   "ወርሃዊ የጽዋ (የዝክር) ቀን ለመካፈል ፈቃደኛ የሆነ"
 ];
 
-export const TRAININGS_OFFERED = ["በገና", "ክራር", "መሰንቆ", "ከበሮ"];
+export const PUBLIC_REGISTRATION_INSTRUMENTS = ["በገና", "ክራር"] as const;
+export const TRAININGS_OFFERED = [...PUBLIC_REGISTRATION_INSTRUMENTS, "መሰንቆ", "ከበሮ"] as const;

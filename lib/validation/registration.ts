@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PUBLIC_REGISTRATION_INSTRUMENTS } from "@/components/registration/types";
 
 export function normalizeEthiopianPhone(raw: string): string | null {
   const digits = raw.replace(/[\s\-()]/g, "");
@@ -53,7 +54,7 @@ const baseRegistrationShape = {
     errorMap: () => ({ message: "Please select applicant type." })
   }),
   studentYear: z.enum(STUDENT_YEAR_VALUES).optional().nullable(),
-  department: z.enum(["በገና", "ክራር", "መሰንቆ", "ከበሮ"], {
+  department: z.enum(PUBLIC_REGISTRATION_INSTRUMENTS, {
     errorMap: () => ({ message: "Please select an instrument." })
   }),
   packageType: z.enum(["REGULAR", "SPECIAL", "HOME_TO_HOME", "KRAR", "ONLINE_CLASS"], {

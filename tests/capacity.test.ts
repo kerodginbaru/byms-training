@@ -51,7 +51,7 @@ describe.skip("createRegistration concurrency", () => {
         confessorName: "Abba Yared",
         applicantType: "EMPLOYEE",
         studentYear: null,
-        department: null,
+        department: "በገና",
         packageType: "REGULAR",
         scheduleId: schedule.id,
         preferredTime: null,

@@ -2,10 +2,11 @@ import Link from "next/link";
 import { requirePermission } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 import { SESSION_LABELS, formatDays } from "@/lib/utils/labels";
+import { TRAININGS_OFFERED } from "@/components/registration/types";
 
 export const dynamic = "force-dynamic";
 
-const INSTRUMENTS = ["በገና", "ክራር"] as const;
+const INSTRUMENTS = TRAININGS_OFFERED;
 type Instrument = (typeof INSTRUMENTS)[number];
 
 export default async function AdminDashboardPage({

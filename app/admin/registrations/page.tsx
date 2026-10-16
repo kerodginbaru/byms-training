@@ -35,9 +35,7 @@ export default async function AdminRegistrationsPage({
   if (searchParams.type) where.applicantType = searchParams.type as any;
   if (searchParams.packageType) where.packageType = searchParams.packageType as any;
   if (searchParams.scheduleId) where.scheduleId = searchParams.scheduleId;
-  const selectedInstrument = TRAININGS_OFFERED.includes(searchParams.instrument ?? "")
-    ? searchParams.instrument!
-    : undefined;
+  const selectedInstrument = TRAININGS_OFFERED.find((instrument) => instrument === searchParams.instrument);
   if (selectedInstrument) where.department = selectedInstrument;
 
   const [allRegistrations, instrumentRegistrations] = await Promise.all([
@@ -56,10 +54,11 @@ export default async function AdminRegistrationsPage({
   const shiftGroups = groupRegistrationsByShift(allRegistrations);
   const registrationsByInstrument = new Map(TRAININGS_OFFERED.map((instrument) => [instrument, 0]));
   for (const registration of instrumentRegistrations ?? []) {
-    if (registration.department) {
+    const instrument = TRAININGS_OFFERED.find((item) => item === registration.department);
+    if (instrument) {
       registrationsByInstrument.set(
-        registration.department,
-        (registrationsByInstrument.get(registration.department) ?? 0) + 1
+        instrument,
+        (registrationsByInstrument.get(instrument) ?? 0) + 1
       );
     }
   }
@@ -93,7 +92,7 @@ export default async function AdminRegistrationsPage({
         <section className="mt-6">
           <h2 className="mb-3 text-lg font-semibold text-ink-900">Total registrations by instrument</h2>
           <div className="grid gap-4 sm:grid-cols-2">
-            {TRAININGS_OFFERED.filter((instrument) => instrument === "በገና" || instrument === "ክራር").map((instrument) => (
+            {TRAININGS_OFFERED.map((instrument) => (
               <Link
                 key={instrument}
                 href={buildQuery({ instrument, shiftId: undefined, page: undefined })}
