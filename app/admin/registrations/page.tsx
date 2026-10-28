@@ -96,10 +96,10 @@ export default async function AdminRegistrationsPage({
             Download student details PDF
           </a>
           <a
-            href={`/api/admin/registrations/excel${buildQuery({ page: undefined })}`}
+            href="/api/admin/registrations/excel"
             className="rounded-lg bg-brand-500 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-600"
           >
-            Download Excel workbook
+            Download all registrations (Excel)
           </a>
           <Link
             href={buildQuery({ missingConfessor: searchParams.missingConfessor === "true" ? undefined : "true", instrument: undefined, shiftId: undefined, page: undefined })}
