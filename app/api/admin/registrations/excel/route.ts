@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import ExcelJS from "exceljs";
 import { Prisma } from "@prisma/client";
 import { CONFESSOR_PARISH_LABELS, PACKAGE_LABELS } from "@/components/registration/types";
-import { SESSION_LABELS, STUDENT_YEAR_LABELS, formatDays } from "@/lib/utils/labels";
+import { STUDENT_YEAR_LABELS } from "@/lib/utils/labels";
 import { requirePermission } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 
@@ -56,7 +56,19 @@ export async function GET(request: NextRequest) {
 
   const registrations = await prisma.registration.findMany({
     where,
-    include: { schedule: true, uploadedFiles: true },
+    select: {
+      fullName: true,
+      phone: true,
+      christianName: true,
+      teseto: true,
+      confessorParish: true,
+      confessorName: true,
+      applicantType: true,
+      studentYear: true,
+      department: true,
+      packageType: true,
+      schedule: true
+    },
     orderBy: { createdAt: "desc" }
   });
 
@@ -67,7 +79,6 @@ export async function GET(request: NextRequest) {
     views: [{ state: "frozen", ySplit: 1 }]
   });
   sheet.columns = [
-    { header: "Registration Number", key: "registrationNumber", width: 23 },
     { header: "Full Name", key: "fullName", width: 30 },
     { header: "Phone", key: "phone", width: 18 },
     { header: "Christian Name", key: "christianName", width: 22 },
@@ -78,15 +89,7 @@ export async function GET(request: NextRequest) {
     { header: "Student Year", key: "studentYear", width: 20 },
     { header: "Instrument", key: "instrument", width: 18 },
     { header: "Package", key: "package", width: 24 },
-    { header: "Schedule", key: "schedule", width: 24 },
-    { header: "Schedule Days", key: "scheduleDays", width: 22 },
-    { header: "Session", key: "session", width: 16 },
-    { header: "Training Time", key: "trainingTime", width: 22 },
-    { header: "Preferred Time", key: "preferredTime", width: 24 },
-    { header: "Regulations Accepted", key: "regulationsAccepted", width: 22 },
-    { header: "Uploaded Document", key: "uploadedDocument", width: 40 },
-    { header: "Registered At", key: "registeredAt", width: 24 },
-    { header: "Last Updated", key: "lastUpdated", width: 24 }
+    { header: "Schedule", key: "schedule", width: 24 }
   ];
 
   const header = sheet.getRow(1);
@@ -96,14 +99,7 @@ export async function GET(request: NextRequest) {
   header.alignment = { vertical: "middle", wrapText: true };
 
   for (const [index, registration] of registrations.entries()) {
-    const schedule = registration.schedule;
-    const documents = registration.uploadedFiles
-      .filter((file) => file.kind === "DOCUMENT")
-      .map((file) => file.originalFilename)
-      .join("; ");
-
     const row = sheet.addRow({
-      registrationNumber: registration.registrationNumber,
       fullName: registration.fullName,
       phone: registration.phone,
       christianName: registration.christianName ?? "",
@@ -116,15 +112,7 @@ export async function GET(request: NextRequest) {
       studentYear: registration.studentYear ? STUDENT_YEAR_LABELS[registration.studentYear] : "",
       instrument: registration.department ?? "",
       package: PACKAGE_LABELS[registration.packageType],
-      schedule: schedule?.name ?? "Individually arranged",
-      scheduleDays: schedule ? formatDays(schedule.days) : "",
-      session: schedule ? SESSION_LABELS[schedule.session] : "",
-      trainingTime: schedule ? `${schedule.startTime}-${schedule.endTime}` : "",
-      preferredTime: registration.preferredTime ?? "",
-      regulationsAccepted: registration.agreedToRegulations ? "Yes" : "No",
-      uploadedDocument: documents,
-      registeredAt: registration.createdAt,
-      lastUpdated: registration.updatedAt
+      schedule: registration.schedule?.name ?? "Individually arranged"
     });
     row.height = 30;
     row.alignment = { vertical: "top", wrapText: true };
@@ -133,9 +121,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  sheet.autoFilter = `A1:T${sheet.rowCount}`;
-  sheet.getColumn("registeredAt").numFmt = "dd mmm yyyy hh:mm";
-  sheet.getColumn("lastUpdated").numFmt = "dd mmm yyyy hh:mm";
+  sheet.autoFilter = `A1:K${sheet.rowCount}`;
 
   const buffer = await workbook.xlsx.writeBuffer();
   const filename = `student-registrations-${new Date().toISOString().slice(0, 10)}.xlsx`;
