@@ -3,16 +3,27 @@ import { ScheduleOption } from "./types";
 
 export function StepSchedule({
   schedules,
+  department,
   selectedId,
   error,
   onSelect
 }: {
   schedules: ScheduleOption[];
+  department: string;
   selectedId: string;
   error?: string;
   onSelect: (id: string) => void;
 }) {
-  const available = schedules.filter((s) => !s.isFull);
+  const availability = schedules.map((schedule) => {
+    const registered = schedule.registeredByDepartment[department] ?? 0;
+    return {
+      ...schedule,
+      registered,
+      remaining: Math.max(0, schedule.capacity - registered),
+      isFull: registered >= schedule.capacity
+    };
+  });
+  const available = availability.filter((schedule) => !schedule.isFull);
 
   return (
     <div>

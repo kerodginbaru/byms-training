@@ -100,12 +100,20 @@ export default async function TrainingPage() {
             <p className="amharic text-sm text-ink-900/70">
               {SESSION_LABELS[s.session]} · {s.startTime}–{s.endTime}
             </p>
-            <p className="mt-3 text-xs text-ink-900/60">
-              {s.registered} / {s.capacity} ቦታ
-            </p>
-            <p className={`amharic text-xs font-medium ${s.isFull ? "text-red-600" : "text-brand-600"}`}>
-              {s.isFull ? "ሙሉ ነው" : `${s.remaining} ቦታ ቀርቷል`}
-            </p>
+            <div className="mt-3 space-y-1 border-t border-brand-50 pt-3">
+              {TRAININGS_OFFERED.map((instrument) => {
+                const registered = s.registeredByDepartment[instrument] ?? 0;
+                const remaining = Math.max(0, s.capacity - registered);
+                return (
+                  <p key={instrument} className="amharic flex justify-between gap-2 text-xs">
+                    <span className="font-medium text-ink-900">{instrument}</span>
+                    <span className={remaining === 0 ? "text-red-600" : "text-brand-600"}>
+                      {remaining === 0 ? "ሙሉ ነው" : `${registered}/${s.capacity} · ${remaining} ቦታ ቀርቷል`}
+                    </span>
+                  </p>
+                );
+              })}
+            </div>
           </div>
         ))}
       </div>

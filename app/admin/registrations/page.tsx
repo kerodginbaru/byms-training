@@ -19,6 +19,7 @@ export default async function AdminRegistrationsPage({
     instrument?: string;
     shiftId?: string;
     page?: string;
+    missingConfessor?: string;
   };
 }) {
   await requirePermission("registrations:read");
@@ -35,6 +36,11 @@ export default async function AdminRegistrationsPage({
   if (searchParams.type) where.applicantType = searchParams.type as any;
   if (searchParams.packageType) where.packageType = searchParams.packageType as any;
   if (searchParams.scheduleId) where.scheduleId = searchParams.scheduleId;
+  if (searchParams.missingConfessor === "true") {
+    where.AND = [
+      { OR: [{ confessorParish: "NONE" }, { confessorParish: null }] }
+    ];
+  }
   const selectedInstrument = TRAININGS_OFFERED.find((instrument) => instrument === searchParams.instrument);
   if (selectedInstrument) where.department = selectedInstrument;
 
@@ -65,6 +71,9 @@ export default async function AdminRegistrationsPage({
   const selectedShiftId = searchParams.shiftId ?? "";
   const selectedShift = shiftGroups.find((group) => group.id === selectedShiftId) ?? null;
   const visibleRegistrations = selectedShift ? selectedShift.members : allRegistrations;
+  const missingConfessorCount = await prisma.registration.count({
+    where: { OR: [{ confessorParish: "NONE" }, { confessorParish: null }] }
+  });
 
   function buildQuery(patch: Record<string, string | undefined>) {
     const p = new URLSearchParams();
@@ -79,6 +88,20 @@ export default async function AdminRegistrationsPage({
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-ink-900">Registrations</h1>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href={`/api/admin/registrations/pdf${buildQuery({ page: undefined })}`}
+            className="rounded-lg border border-brand-200 px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50"
+          >
+            Download student details PDF
+          </a>
+          <Link
+            href={buildQuery({ missingConfessor: searchParams.missingConfessor === "true" ? undefined : "true", instrument: undefined, shiftId: undefined, page: undefined })}
+            className="rounded-lg border border-amber-300 px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-50"
+          >
+            {searchParams.missingConfessor === "true" ? "All registrations" : `No confessor (${missingConfessorCount})`}
+          </Link>
+        </div>
         {selectedInstrument && (
           <a href={`/api/admin/registrations/export${buildQuery({ page: undefined })}`}
             className="rounded-full bg-brand-500 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-600"
@@ -88,7 +111,33 @@ export default async function AdminRegistrationsPage({
         )}
       </div>
 
-      {!selectedInstrument && (
+      {searchParams.missingConfessor === "true" && (
+        <section className="mt-6">
+          <h2 className="text-lg font-semibold text-ink-900">Registrations without a የንስሃ አባት</h2>
+          <p className="mt-1 text-sm text-ink-900/60">{allRegistrations.length} matching registration(s)</p>
+          <div className="mt-3 overflow-x-auto rounded-xl border border-brand-100 bg-white">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-brand-50 text-xs uppercase text-ink-900/50">
+                <tr><th className="px-4 py-3">Reg. Number</th><th className="px-4 py-3">Name</th><th className="px-4 py-3">Phone</th><th className="px-4 py-3">Instrument</th><th className="px-4 py-3">Confessor status</th><th className="px-4 py-3" /></tr>
+              </thead>
+              <tbody className="divide-y divide-brand-50">
+                {allRegistrations.map((registration) => (
+                  <tr key={registration.id}>
+                    <td className="whitespace-nowrap px-4 py-3 font-mono text-xs">{registration.registrationNumber}</td>
+                    <td className="px-4 py-3">{registration.fullName}</td>
+                    <td className="px-4 py-3">{registration.phone}</td>
+                    <td className="px-4 py-3">{registration.department ?? "—"}</td>
+                    <td className="px-4 py-3">{registration.confessorParish === "NONE" ? "None selected" : "Not provided"}</td>
+                    <td className="px-4 py-3"><Link href={`/admin/registrations/${registration.id}`} className="font-medium text-brand-600 hover:underline">View</Link></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
+      {!selectedInstrument && searchParams.missingConfessor !== "true" && (
         <section className="mt-6">
           <h2 className="mb-3 text-lg font-semibold text-ink-900">Total registrations by instrument</h2>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -107,7 +156,7 @@ export default async function AdminRegistrationsPage({
         </section>
       )}
 
-      {selectedInstrument && (
+      {selectedInstrument && searchParams.missingConfessor !== "true" && (
         <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-xl font-bold text-ink-900">
             {selectedInstrument}{selectedShift ? ` · ${selectedShift.days?.length ? formatDays(selectedShift.days) : selectedShift.name}` : " shifts"}
@@ -121,7 +170,7 @@ export default async function AdminRegistrationsPage({
         </div>
       )}
 
-      {selectedInstrument && !selectedShift && (
+      {selectedInstrument && !selectedShift && searchParams.missingConfessor !== "true" && (
         <section className="mt-6">
           {shiftGroups.length === 0 ? (
             <div className="rounded-xl border border-dashed border-brand-200 bg-brand-50 p-5 text-sm text-ink-900/60">
@@ -160,7 +209,7 @@ export default async function AdminRegistrationsPage({
         </section>
       )}
 
-      {selectedInstrument && selectedShift && (
+      {selectedInstrument && selectedShift && searchParams.missingConfessor !== "true" && (
         <div className="mt-6">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
@@ -238,7 +287,7 @@ export default async function AdminRegistrationsPage({
         </div>
       )}
 
-      {selectedInstrument && selectedShift && (
+      {selectedInstrument && selectedShift && searchParams.missingConfessor !== "true" && (
         <div className="mt-4 text-sm text-ink-900/60">
           {selectedShift.members.length} registered participant{selectedShift.members.length === 1 ? "" : "s"}
         </div>

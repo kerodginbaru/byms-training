@@ -28,6 +28,7 @@ export type ScheduleOption = {
   endTime: string;
   capacity: number;
   registered: number;
+  registeredByDepartment: Record<string, number>;
   remaining: number;
   isFull: boolean;
 };

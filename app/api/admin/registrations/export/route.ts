@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
   const type = searchParams.get("type");
   const packageType = searchParams.get("packageType");
   const scheduleId = searchParams.get("scheduleId");
+  const instrument = searchParams.get("instrument");
 
   if (q) {
     where.OR = [
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest) {
   if (type) where.applicantType = type as any;
   if (packageType) where.packageType = packageType as any;
   if (scheduleId) where.scheduleId = scheduleId;
+  if (instrument) where.department = instrument;
 
   const registrations = await prisma.registration.findMany({
     where,

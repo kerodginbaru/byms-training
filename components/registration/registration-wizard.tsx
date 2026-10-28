@@ -223,6 +223,7 @@ export function RegistrationWizard({
               (isRegular ? (
                 <StepSchedule
                   schedules={schedules}
+                  department={state.department}
                   selectedId={state.scheduleId}
                   error={errors.scheduleId}
                   onSelect={(id) => update({ scheduleId: id })}

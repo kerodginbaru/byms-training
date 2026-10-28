@@ -4,6 +4,7 @@ import { requirePermission } from "@/lib/auth/rbac";
 import { prisma } from "@/lib/db";
 import { scheduleSchema } from "@/lib/validation/admin";
 import { formatDays, SESSION_LABELS } from "@/lib/utils/labels";
+import { PUBLIC_REGISTRATION_INSTRUMENTS } from "@/components/registration/types";
 
 export const dynamic = "force-dynamic";
 
@@ -14,11 +15,16 @@ export default async function AdminSchedulesPage() {
 
   const schedules = await prisma.schedule.findMany({ orderBy: { name: "asc" } });
   const counts = await prisma.registration.groupBy({
-    by: ["scheduleId"],
+    by: ["scheduleId", "department"],
     where: { packageType: "REGULAR" },
     _count: { _all: true }
   });
-  const countMap = new Map(counts.map((c) => [c.scheduleId, c._count._all]));
+  const countMap = new Map<string | null, Record<string, number>>();
+  for (const count of counts) {
+    const departmentCounts = countMap.get(count.scheduleId) ?? {};
+    if (count.department) departmentCounts[count.department] = count._count._all;
+    countMap.set(count.scheduleId, departmentCounts);
+  }
 
   async function createSchedule(formData: FormData) {
     "use server";
@@ -78,8 +84,10 @@ export default async function AdminSchedulesPage() {
           </thead>
           <tbody className="divide-y divide-brand-50">
             {schedules.map((s) => {
-              const registered = countMap.get(s.id) ?? 0;
-              const full = registered >= s.capacity;
+              const registered = countMap.get(s.id) ?? {};
+              const full = PUBLIC_REGISTRATION_INSTRUMENTS.every(
+                (instrument) => (registered[instrument] ?? 0) >= s.capacity
+              );
               return (
                 <tr key={s.id}>
                   <td className="px-4 py-3">
@@ -97,7 +105,11 @@ export default async function AdminSchedulesPage() {
                   <td className="px-4 py-3">
                     <form action={updateCapacity} className="flex items-center gap-2">
                       <input type="hidden" name="id" value={s.id} />
-                      {registered} /{" "}
+                      <span className="text-xs">
+                        {PUBLIC_REGISTRATION_INSTRUMENTS.map((instrument) =>
+                          `${instrument} ${registered[instrument] ?? 0}/${s.capacity}`
+                        ).join(" · ")}
+                      </span>
                       <input
                         name="capacity"
                         type="number"

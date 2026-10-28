@@ -126,7 +126,7 @@ export async function createRegistration(input: RegistrationInput) {
       }
 
       const reservedCount = await tx.registration.count({
-        where: { scheduleId: schedule.id }
+        where: { scheduleId: schedule.id, department: data.department }
       });
 
       if (reservedCount >= schedule.capacity) {
@@ -189,17 +189,24 @@ export async function getScheduleAvailability() {
   });
 
   const counts = await prisma.registration.groupBy({
-    by: ["scheduleId"],
+    by: ["scheduleId", "department"],
     _count: { _all: true }
   });
 
-  const countMap = new Map(counts.map((c) => [c.scheduleId, c._count._all]));
+  const countMap = new Map<string | null, Record<string, number>>();
+  for (const count of counts) {
+    const departmentCounts = countMap.get(count.scheduleId) ?? {};
+    if (count.department) departmentCounts[count.department] = count._count._all;
+    countMap.set(count.scheduleId, departmentCounts);
+  }
 
   return schedules.map((s) => {
-    const registered = countMap.get(s.id) ?? 0;
+    const registeredByDepartment = countMap.get(s.id) ?? {};
+    const registered = Object.values(registeredByDepartment).reduce((total, count) => total + count, 0);
     return {
       ...s,
       registered,
+      registeredByDepartment,
       remaining: Math.max(0, s.capacity - registered),
       isFull: registered >= s.capacity
     };
