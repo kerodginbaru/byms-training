@@ -90,12 +90,6 @@ export default async function AdminRegistrationsPage({
         <h1 className="text-2xl font-bold text-ink-900">Registrations</h1>
         <div className="flex flex-wrap gap-2">
           <a
-            href={`/api/admin/registrations/pdf${buildQuery({ page: undefined })}`}
-            className="rounded-lg border border-brand-200 px-3 py-2 text-sm font-medium text-brand-700 hover:bg-brand-50"
-          >
-            Download student details PDF
-          </a>
-          <a
             href="/api/admin/registrations/excel"
             className="rounded-lg bg-brand-500 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-600"
           >
