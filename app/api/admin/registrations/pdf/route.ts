@@ -13,16 +13,40 @@ import { prisma } from "@/lib/db";
 export const runtime = "nodejs";
 
 const FONT_PATH = path.join(process.cwd(), "public/certificates/NotoSerifEthiopic-Regular.ttf");
-const MARGIN = 48;
-const FONT_SIZE = 10;
-const LINE_HEIGHT = 15;
+const PAGE_WIDTH = 595.28;
+const PAGE_HEIGHT = 841.89;
+const MARGIN = 40;
+const FONT_SIZE = 12;
+const LINE_HEIGHT = 17;
+const CELL_PADDING = 8;
+const LABEL_WIDTH = 170;
 
-function wrapText(text: string, font: ReturnType<PDFDocument["embedFont"]> extends Promise<infer T> ? T : never, maxWidth: number) {
+function wrapText(
+  text: string,
+  font: ReturnType<PDFDocument["embedFont"]> extends Promise<infer T> ? T : never,
+  maxWidth: number
+) {
   const words = text.split(/\s+/);
   const lines: string[] = [];
   let line = "";
 
   for (const word of words) {
+    if (font.widthOfTextAtSize(word, FONT_SIZE) > maxWidth) {
+      if (line) lines.push(line);
+      line = "";
+      let segment = "";
+      for (const character of word) {
+        const candidate = segment + character;
+        if (font.widthOfTextAtSize(candidate, FONT_SIZE) > maxWidth && segment) {
+          lines.push(segment);
+          segment = character;
+        } else {
+          segment = candidate;
+        }
+      }
+      line = segment;
+      continue;
+    }
     const candidate = line ? `${line} ${word}` : word;
     if (font.widthOfTextAtSize(candidate, FONT_SIZE) <= maxWidth) {
       line = candidate;
@@ -93,13 +117,54 @@ export async function GET(request: NextRequest) {
 
   const entries = registrations.length ? registrations : [null];
   for (const registration of entries) {
-    const page = pdf.addPage([595.28, 841.89]);
-    const { width, height } = page.getSize();
-    let y = height - MARGIN;
+    const title = registration
+      ? `${registration.fullName} · ${registration.registrationNumber}`
+      : "No registrations found";
+    let page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
 
-    const title = registration ? registration.registrationNumber : "No registrations found";
-    page.drawText(title, { x: MARGIN, y, size: 17, font, color: rgb(0.12, 0.2, 0.28) });
-    y -= 25;
+    function drawTableHeader() {
+      const { width, height } = page.getSize();
+      let cursorY = height - MARGIN;
+      page.drawText(title, {
+        x: MARGIN,
+        y: cursorY,
+        size: 16,
+        font,
+        color: rgb(0.1, 0.2, 0.29)
+      });
+      cursorY -= 28;
+      const tableWidth = width - MARGIN * 2;
+      page.drawRectangle({
+        x: MARGIN,
+        y: cursorY - 5,
+        width: tableWidth,
+        height: 25,
+        color: rgb(0.12, 0.28, 0.36)
+      });
+      page.drawText("Field", {
+        x: MARGIN + CELL_PADDING,
+        y: cursorY + 2,
+        size: 11,
+        font,
+        color: rgb(1, 1, 1)
+      });
+      page.drawText("Student information", {
+        x: MARGIN + LABEL_WIDTH + CELL_PADDING,
+        y: cursorY + 2,
+        size: 11,
+        font,
+        color: rgb(1, 1, 1)
+      });
+      page.drawLine({
+        start: { x: MARGIN + LABEL_WIDTH, y: cursorY - 5 },
+        end: { x: MARGIN + LABEL_WIDTH, y: cursorY + 20 },
+        thickness: 0.8,
+        color: rgb(0.75, 0.82, 0.84)
+      });
+      return cursorY - 5;
+    }
+
+    let y = drawTableHeader();
 
     if (!registration) continue;
 
@@ -133,17 +198,53 @@ export async function GET(request: NextRequest) {
       ["Last updated", new Intl.DateTimeFormat("en-GB", { dateStyle: "long", timeStyle: "short" }).format(registration.updatedAt)]
     ];
 
-    for (const [label, value] of fields) {
-      const lines = wrapText(`${label}: ${value}`, font, width - MARGIN * 2);
-      for (const line of lines) {
-        if (y < MARGIN) {
-          const nextPage = pdf.addPage([595.28, 841.89]);
-          y = nextPage.getHeight() - MARGIN;
-        }
-        const currentPage = pdf.getPages()[pdf.getPageCount() - 1];
-        currentPage.drawText(line, { x: MARGIN, y, size: FONT_SIZE, font, color: rgb(0.12, 0.16, 0.2) });
-        y -= LINE_HEIGHT;
+    const tableWidth = PAGE_WIDTH - MARGIN * 2;
+    for (const [rowIndex, [label, value]] of fields.entries()) {
+      const labelLines = wrapText(label, font, LABEL_WIDTH - CELL_PADDING * 2);
+      const valueLines = wrapText(value, font, tableWidth - LABEL_WIDTH - CELL_PADDING * 2);
+      const rowHeight = Math.max(labelLines.length, valueLines.length) * LINE_HEIGHT + CELL_PADDING * 2;
+
+      if (y - rowHeight < MARGIN) {
+        page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+        y = drawTableHeader();
       }
+
+      const rowBottom = y - rowHeight;
+      page.drawRectangle({
+        x: MARGIN,
+        y: rowBottom,
+        width: tableWidth,
+        height: rowHeight,
+        color: rowIndex % 2 === 0 ? rgb(0.95, 0.97, 0.97) : rgb(1, 1, 1),
+        borderColor: rgb(0.82, 0.86, 0.87),
+        borderWidth: 0.5
+      });
+      page.drawLine({
+        start: { x: MARGIN + LABEL_WIDTH, y: rowBottom },
+        end: { x: MARGIN + LABEL_WIDTH, y },
+        thickness: 0.5,
+        color: rgb(0.82, 0.86, 0.87)
+      });
+
+      labelLines.forEach((line, lineIndex) => {
+        page.drawText(line, {
+          x: MARGIN + CELL_PADDING,
+          y: y - CELL_PADDING - FONT_SIZE - lineIndex * LINE_HEIGHT,
+          size: FONT_SIZE,
+          font,
+          color: rgb(0.15, 0.25, 0.3)
+        });
+      });
+      valueLines.forEach((line, lineIndex) => {
+        page.drawText(line, {
+          x: MARGIN + LABEL_WIDTH + CELL_PADDING,
+          y: y - CELL_PADDING - FONT_SIZE - lineIndex * LINE_HEIGHT,
+          size: FONT_SIZE,
+          font,
+          color: rgb(0.12, 0.16, 0.2)
+        });
+      });
+      y = rowBottom;
     }
   }
 
